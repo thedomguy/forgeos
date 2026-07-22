@@ -6,7 +6,7 @@ export default function App() {
     <View style={styles.container}>
       <StatusBar style="dark" />
       <View style={styles.card}>
-        <Text style={styles.eyebrow}>HealthForge Mobile</Text>
+        <Text style={styles.eyebrow}>ForgeOS Mobile</Text>
         <Text style={styles.title}>Hello world</Text>
         <Text style={styles.subtitle}>Expo Go is connected.</Text>
       </View>

@@ -1,4 +1,4 @@
-# HealthForge Mobile
+# ForgeOS Mobile
 
 Minimal Expo React Native TypeScript app for checking Expo Go on a phone.
 
