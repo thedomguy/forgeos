@@ -21,3 +21,11 @@ for built asset URLs to resolve correctly. Update it if the deploy path ever cha
 `/var/www/domguy.dev/prototypes/forgeos/`, and fixes ownership to `www-data`. Run it
 after any change you want visible on the live URL. There is no separate running dev
 process on this VPS — deploy is build-and-copy only, nothing auto-publishes.
+
+## PWA
+
+Installable + offline via `vite-plugin-pwa` (config in `vite.config.js`), source icons
+in `public/` generated from `mobile-app/assets/icon.png`. Service worker precaches the
+app shell (`registerType: 'autoUpdate'`) — after deploying a change, installed clients
+pick it up on next load/refresh, not instantly. Regenerate `public/pwa-*.png` /
+`apple-touch-icon.png` / `favicon-32x32.png` with Pillow if the source icon changes.
