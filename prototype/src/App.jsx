@@ -8,7 +8,7 @@ import { AssistantScreen } from './assistant.jsx';
 import { WorkoutsScreen, WorkoutLive, WorkoutBanner, elapsedOf } from './workout.jsx';
 import { AddFoodSheet, LogWeightSheet } from './sheets.jsx';
 import { WORKOUT_TEMPLATES, PUSH_EXERCISES } from './data.js';
-import { NAV_H, FONT } from './theme.jsx';
+import { NAV_H, FONT, ON_ACCENT, SCRIM, Z } from './theme.jsx';
 
 const TAB_OF = { home: 'home', modules: 'modules', assistant: 'assistant', timeline: 'timeline', profile: 'profile' };
 
@@ -142,8 +142,8 @@ export default function App() {
       {/* toast */}
       {toast && (
         <div style={{ position: 'absolute', bottom: showLiveNav ? NAV_H + 14 : 40, left: '50%',
-          transform: 'translateX(-50%)', zIndex: 110, padding: '11px 18px', borderRadius: 14,
-          background: theme.dark ? 'rgba(28,30,38,0.95)' : 'rgba(20,22,28,0.95)', color: '#fff',
+          transform: 'translateX(-50%)', zIndex: Z.toast, padding: '11px 18px', borderRadius: 14,
+          background: SCRIM, color: ON_ACCENT,
           fontSize: 13.5, fontWeight: 550, fontFamily: FONT, whiteSpace: 'nowrap', maxWidth: 340,
           overflow: 'hidden', textOverflow: 'ellipsis', boxShadow: '0 12px 32px rgba(0,0,0,0.4)',
           border: `1px solid ${theme.border2}`, animation: 'forgeRise .3s cubic-bezier(.32,.72,0,1)' }}>{toast}</div>

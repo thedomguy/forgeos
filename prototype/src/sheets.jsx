@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { Icon } from './icons.jsx';
 import { Sheet, Button, IconBtn, Tag } from './ui.jsx';
-import { FONT, MONO, HUE } from './theme.jsx';
+import { FONT, MONO, HUE, ON_ACCENT, SCREEN_PAD_X } from './theme.jsx';
 
 const DETECTED_FOOD = [
   { n: 'Grilled chicken breast', portion: '180 g', kcal: 297, p: 56, c: 0, f: 7, conf: 0.96, emoji: '🍗' },
@@ -50,13 +50,13 @@ export function AddFoodSheet({ open, onClose, theme, onLogged }) {
           <span style={{ fontSize: 19, fontWeight: 700 }}>Log Food</span>
           <IconBtn name="close" theme={t} size={36} iconSize={18} onClick={onClose} />
         </div>
-        <div style={{ display: 'flex', gap: 8, padding: '0 16px 14px' }}>
+        <div style={{ display: 'flex', gap: 8, padding: `0 ${SCREEN_PAD_X}px 14px` }}>
           <MethodTab theme={t} icon="camera" label="Photo" active={method==='photo'} onClick={() => setMethod('photo')} />
           <MethodTab theme={t} icon="mic" label="Voice" active={method==='voice'} onClick={() => setMethod('voice')} />
           <MethodTab theme={t} icon="pencil" label="Manual" active={method==='manual'} onClick={() => setMethod('manual')} />
         </div>
 
-        <div style={{ flex: 1, overflowY: 'auto', padding: '0 16px' }}>
+        <div style={{ flex: 1, overflowY: 'auto', padding: `0 ${SCREEN_PAD_X}px` }}>
           {method === 'photo' && (
             <>
               {!scanned && (
@@ -69,7 +69,7 @@ export function AddFoodSheet({ open, onClose, theme, onLogged }) {
                         background: `linear-gradient(90deg, transparent, ${t.accent.solid}, transparent)`,
                         animation: 'forgeScan 1.4s ease-in-out infinite' }} />
                       <div style={{ width: 46, height: 46, borderRadius: 14, display: 'flex', alignItems: 'center',
-                        justifyContent: 'center', color: '#fff',
+                        justifyContent: 'center', color: ON_ACCENT,
                         background: `linear-gradient(135deg, ${t.accent.g1}, ${t.accent.g2})` }}>
                         <Icon name="spark" size={24} /></div>
                       <span style={{ fontSize: 14, fontWeight: 600, color: t.text2 }}>Recognizing food…</span>
@@ -115,7 +115,7 @@ export function AddFoodSheet({ open, onClose, theme, onLogged }) {
           {method === 'voice' && (
             <div style={{ textAlign: 'center', paddingTop: 24 }}>
               <button onClick={() => { setScanned(true); setItems(DETECTED_FOOD.slice(0,2).map(d => ({...d}))); }}
-                style={{ width: 88, height: 88, borderRadius: '50%', border: 'none', cursor: 'pointer', color: '#fff',
+                style={{ width: 88, height: 88, borderRadius: '50%', border: 'none', cursor: 'pointer', color: ON_ACCENT,
                 background: `linear-gradient(135deg, ${t.accent.g1}, ${t.accent.g2})`,
                 boxShadow: `0 12px 32px ${t.accent.glow}`, display: 'flex', alignItems: 'center',
                 justifyContent: 'center', margin: '0 auto' }}><Icon name="mic" size={36} /></button>
@@ -161,7 +161,7 @@ export function AddFoodSheet({ open, onClose, theme, onLogged }) {
 
         {/* footer */}
         {(items.length > 0) && (
-          <div style={{ padding: '12px 16px 28px', borderTop: `1px solid ${t.border}` }}>
+          <div style={{ padding: `12px ${SCREEN_PAD_X}px 28px`, borderTop: `1px solid ${t.border}` }}>
             <Button theme={t} onClick={() => { onLogged && onLogged(total); onClose(); }}>
               Add {items.length} item{items.length>1?'s':''} · {total} kcal</Button>
           </div>

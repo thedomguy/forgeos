@@ -4,7 +4,7 @@ import { Icon } from './icons.jsx';
 import { Card, IconBtn, Button, Tag } from './ui.jsx';
 import { ModuleHeader } from './health.jsx';
 import { SectionLabel } from './screens.jsx';
-import { FONT, MONO, STATUS_H, NAV_H, HUE } from './theme.jsx';
+import { FONT, MONO, STATUS_H, NAV_H, HUE, ACCENTS, ON_ACCENT, Z, SCREEN_PAD_X } from './theme.jsx';
 import { WORKOUT_TEMPLATES } from './data.js';
 
 export function fmtTime(ms) {
@@ -38,16 +38,16 @@ export function WorkoutsScreen({ theme, nav }) {
     <div style={{ position: 'absolute', inset: 0, overflowY: 'auto', paddingBottom: NAV_H + 12 }}>
       <ModuleHeader theme={t} nav={nav} title="Workouts" view="workouts" />
       {/* quick start */}
-      <div style={{ padding: '16px 16px 0' }}>
+      <div style={{ padding: `${SCREEN_PAD_X}px ${SCREEN_PAD_X}px 0` }}>
         <Card theme={t} elevated onClick={() => nav.startWorkout('push')} style={{
           padding: 18,
-          background: `linear-gradient(125deg, ${HUE.workout}22, #ff4d8d14)`, border: `1px solid ${HUE.workout}40`
+          background: `linear-gradient(125deg, ${HUE.workout}22, ${ACCENTS.coral.g2}14)`, border: `1px solid ${HUE.workout}40`
         }}>
           <Tag theme={t} color={HUE.workout}>Recommended today</Tag>
           <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginTop: 12 }}>
             <div style={{
               width: 52, height: 52, borderRadius: 16, display: 'flex', alignItems: 'center',
-              justifyContent: 'center', color: '#fff', background: 'linear-gradient(135deg, #ff7a59, #ff4d8d)',
+              justifyContent: 'center', color: ON_ACCENT, background: `linear-gradient(135deg, ${ACCENTS.coral.g1}, ${ACCENTS.coral.g2})`,
               boxShadow: `0 8px 22px ${HUE.workout}44`
             }}><Icon name="dumbbell" size={26} /></div>
             <div style={{ flex: 1 }}>
@@ -57,14 +57,14 @@ export function WorkoutsScreen({ theme, nav }) {
           </div>
           <Button theme={t} onClick={(e) => { e.stopPropagation(); nav.startWorkout('push'); }} icon="play"
             style={{
-              marginTop: 16, background: 'linear-gradient(135deg, #ff7a59, #ff4d8d)',
+              marginTop: 16, background: `linear-gradient(135deg, ${ACCENTS.coral.g1}, ${ACCENTS.coral.g2})`,
               boxShadow: `0 8px 24px ${HUE.workout}44`
             }}>Start Workout</Button>
         </Card>
       </div>
 
       <SectionLabel theme={t}>Templates</SectionLabel>
-      <div style={{ padding: '0 16px', display: 'flex', flexDirection: 'column', gap: 10 }}>
+      <div style={{ padding: `0 ${SCREEN_PAD_X}px`, display: 'flex', flexDirection: 'column', gap: 10 }}>
         {WORKOUT_TEMPLATES.map(tpl => (
           <Card key={tpl.id} theme={t} onClick={() => nav.startWorkout(tpl.id)} style={{
             padding: 14,
@@ -112,7 +112,7 @@ export function WorkoutLive({ theme, nav, workout, api }) {
     <div style={{ position: 'absolute', inset: 0, overflowY: 'auto', background: t.bg, paddingBottom: 120 }}>
       {/* top bar */}
       <div style={{
-        paddingTop: STATUS_H, position: 'sticky', top: 0, zIndex: 20, background: t.bg,
+        paddingTop: STATUS_H, position: 'sticky', top: 0, zIndex: Z.sticky, background: t.bg,
         borderBottom: `1px solid ${t.border}`
       }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '6px 14px 10px' }}>
@@ -128,14 +128,14 @@ export function WorkoutLive({ theme, nav, workout, api }) {
           </div>
           <button onClick={() => api.finish()} style={{
             padding: '9px 15px', borderRadius: 12, border: 'none',
-            cursor: 'pointer', fontFamily: FONT, fontSize: 13.5, fontWeight: 650, color: '#fff',
-            background: 'linear-gradient(135deg, #ff7a59, #ff4d8d)'
+            cursor: 'pointer', fontFamily: FONT, fontSize: 13.5, fontWeight: 650, color: ON_ACCENT,
+            background: `linear-gradient(135deg, ${ACCENTS.coral.g1}, ${ACCENTS.coral.g2})`
           }}>Finish</button>
         </div>
       </div>
 
       {/* timer */}
-      <div style={{ padding: '20px 16px 4px', textAlign: 'center' }}>
+      <div style={{ padding: `20px ${SCREEN_PAD_X}px 4px`, textAlign: 'center' }}>
         <div style={{
           fontFamily: MONO, fontSize: 64, fontWeight: 600, letterSpacing: -2, lineHeight: 1,
           color: workout.paused ? t.text3 : t.text, fontVariantNumeric: 'tabular-nums'
@@ -157,7 +157,7 @@ export function WorkoutLive({ theme, nav, workout, api }) {
       </div>
 
       {/* exercises */}
-      <div style={{ padding: '20px 16px 0', display: 'flex', flexDirection: 'column', gap: 12 }}>
+      <div style={{ padding: `20px ${SCREEN_PAD_X}px 0`, display: 'flex', flexDirection: 'column', gap: 12 }}>
         {workout.exercises.map((ex, ei) => {
           const exDone = ex.sets.filter(s => s.done).length;
           return (
@@ -165,7 +165,7 @@ export function WorkoutLive({ theme, nav, workout, api }) {
               padding: 0, overflow: 'hidden',
               border: `1px solid ${exDone === ex.sets.length ? HUE.workout + '44' : t.border}`
             }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 11, padding: '14px 16px 10px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 11, padding: `14px ${SCREEN_PAD_X}px 10px` }}>
                 <div style={{
                   width: 34, height: 34, borderRadius: 10, display: 'flex', alignItems: 'center',
                   justifyContent: 'center', fontFamily: MONO, fontWeight: 600, fontSize: 14,
@@ -181,7 +181,7 @@ export function WorkoutLive({ theme, nav, workout, api }) {
               {/* set header */}
               <div style={{
                 display: 'grid', gridTemplateColumns: '34px 1fr 1fr 52px', gap: 8,
-                padding: '4px 16px', fontFamily: MONO, fontSize: 10.5, color: t.text3,
+                padding: `4px ${SCREEN_PAD_X}px`, fontFamily: MONO, fontSize: 10.5, color: t.text3,
                 textTransform: 'uppercase', letterSpacing: 0.4
               }}>
                 <span>Set</span><span>Previous</span><span style={{ textAlign: 'center' }}>kg × reps</span><span></span>
@@ -189,7 +189,7 @@ export function WorkoutLive({ theme, nav, workout, api }) {
               {ex.sets.map((s, si) => (
                 <div key={si} style={{
                   display: 'grid', gridTemplateColumns: '34px 1fr 1fr 52px', gap: 8,
-                  alignItems: 'center', padding: '9px 16px', transition: 'background .2s',
+                  alignItems: 'center', padding: `9px ${SCREEN_PAD_X}px`, transition: 'background .2s',
                   background: s.done ? HUE.workout + '10' : 'transparent'
                 }}>
                   <span style={{ fontFamily: MONO, fontSize: 14, fontWeight: 600, color: t.text2 }}>{si + 1}</span>
@@ -203,7 +203,7 @@ export function WorkoutLive({ theme, nav, workout, api }) {
                     marginLeft: 'auto', cursor: 'pointer', display: 'flex', alignItems: 'center',
                     justifyContent: 'center', transition: 'all .15s',
                     border: `1px solid ${s.done ? HUE.workout : t.border2}`,
-                    background: s.done ? HUE.workout : t.surface2, color: s.done ? '#fff' : t.text3
+                    background: s.done ? HUE.workout : t.surface2, color: s.done ? ON_ACCENT : t.text3
                   }}>
                     <Icon name="check" size={18} strokeWidth={s.done ? 2.6 : 2} /></button>
                 </div>
@@ -248,10 +248,10 @@ export function WorkoutBanner({ theme, workout, onOpen }) {
   const doneSets = allSets.filter(s => s.done).length;
   return (
     <div onClick={onOpen} style={{
-      position: 'absolute', bottom: NAV_H + 12, left: 12, right: 12, zIndex: 55,
+      position: 'absolute', bottom: NAV_H + 12, left: 12, right: 12, zIndex: Z.floatHi,
       cursor: 'pointer', borderRadius: 18, padding: '10px 14px', display: 'flex', alignItems: 'center', gap: 12,
-      background: 'linear-gradient(135deg, rgba(255,122,89,0.96), rgba(255,77,141,0.96))',
-      boxShadow: '0 12px 30px rgba(255,77,141,0.4)', color: '#fff',
+      background: `linear-gradient(135deg, ${ACCENTS.coral.g1}f5, ${ACCENTS.coral.g2}f5)`,
+      boxShadow: `0 12px 30px ${ACCENTS.coral.g2}66`, color: ON_ACCENT,
       animation: 'forgeRise .35s cubic-bezier(.32,.72,0,1)'
     }}>
       <div style={{

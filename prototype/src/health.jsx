@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { Icon } from './icons.jsx';
 import { Card, Ring, Bar, Tag, Sparkline, MiniBars, Chip, Button } from './ui.jsx';
 import { SectionLabel } from './screens.jsx';
-import { FONT, MONO, HUE, STATUS_H, NAV_H } from './theme.jsx';
+import { FONT, MONO, HUE, STATUS_H, NAV_H, ACCENTS, ON_ACCENT, Z, SCREEN_PAD_X } from './theme.jsx';
 import {
   TODAY, MACROS, MEALS, BODY_METRICS, WEIGHT_DATES, CALORIE_WEEK, PROTEIN_WEEK, WEEK_LABELS, INSIGHTS,
 } from './data.js';
@@ -15,7 +15,7 @@ export function ModuleHeader({ theme, nav, title, hue, view }) {
     { id: 'workouts', label: 'Workouts' }, { id: 'body', label: 'Body' }, { id: 'history', label: 'History' },
   ];
   return (
-    <div style={{ paddingTop: STATUS_H, background: t.bg, position: 'sticky', top: 0, zIndex: 20,
+    <div style={{ paddingTop: STATUS_H, background: t.bg, position: 'sticky', top: 0, zIndex: Z.sticky,
       borderBottom: `1px solid ${t.border}` }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '6px 14px 10px' }}>
         <button onClick={() => nav.back()} style={{ width: 40, height: 40, borderRadius: 12, flexShrink: 0,
@@ -24,7 +24,7 @@ export function ModuleHeader({ theme, nav, title, hue, view }) {
           <Icon name="chevronLeft" size={20} /></button>
         <div style={{ display: 'flex', alignItems: 'center', gap: 9, flex: 1 }}>
           <div style={{ width: 30, height: 30, borderRadius: 9, display: 'flex', alignItems: 'center',
-            justifyContent: 'center', color: '#fff', background: `linear-gradient(135deg, ${c}, ${c}aa)` }}>
+            justifyContent: 'center', color: ON_ACCENT, background: `linear-gradient(135deg, ${c}, ${c}aa)` }}>
             <Icon name="heart" size={17} /></div>
           <span style={{ fontSize: 20, fontWeight: 700, letterSpacing: -0.3 }}>{title}</span>
         </div>
@@ -72,11 +72,11 @@ export function HealthDashboard({ theme, nav }) {
     <div style={{ position: 'absolute', inset: 0, overflowY: 'auto', paddingBottom: NAV_H + 12 }}>
       <ModuleHeader theme={t} nav={nav} title="Health" view="health" />
       {/* energy hero */}
-      <div style={{ padding: '16px 16px 0' }}>
+      <div style={{ padding: `${SCREEN_PAD_X}px ${SCREEN_PAD_X}px 0` }}>
         <Card theme={t} elevated style={{ padding: 20 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
             <Ring theme={t} value={TODAY.caloriesIn} max={TODAY.caloriesGoal} size={108} stroke={11}
-              gradient={[HUE.cal, '#ff9d6b']}>
+              gradient={[HUE.cal, HUE.calLight]}>
               <span style={{ fontFamily: MONO, fontSize: 25, fontWeight: 600, letterSpacing: -1 }}>{(TODAY.caloriesGoal - TODAY.caloriesIn).toLocaleString()}</span>
               <span style={{ fontSize: 10.5, color: t.text3, marginTop: 1 }}>kcal left</span>
             </Ring>
@@ -106,12 +106,12 @@ export function HealthDashboard({ theme, nav }) {
       </div>
 
       {/* start workout CTA */}
-      <div style={{ padding: '12px 16px 0' }}>
+      <div style={{ padding: `12px ${SCREEN_PAD_X}px 0` }}>
         <Card theme={t} onClick={() => nav.deep(['health', 'workouts'])} style={{ padding: 16,
           background: `linear-gradient(120deg, ${HUE.workout}18, ${t.surface} 60%)`, border: `1px solid ${HUE.workout}33` }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 13 }}>
             <div style={{ width: 44, height: 44, borderRadius: 13, display: 'flex', alignItems: 'center',
-              justifyContent: 'center', color: '#fff', background: 'linear-gradient(135deg, #ff7a59, #ff4d8d)',
+              justifyContent: 'center', color: ON_ACCENT, background: `linear-gradient(135deg, ${ACCENTS.coral.g1}, ${ACCENTS.coral.g2})`,
               boxShadow: `0 8px 20px ${HUE.workout}40` }}><Icon name="dumbbell" size={23} /></div>
             <div style={{ flex: 1 }}>
               <div style={{ fontSize: 15.5, fontWeight: 660 }}>Ready to train?</div>
@@ -124,7 +124,7 @@ export function HealthDashboard({ theme, nav }) {
 
       {/* stat grid */}
       <SectionLabel theme={t}>Today</SectionLabel>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, padding: '0 16px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, padding: `0 ${SCREEN_PAD_X}px` }}>
         <StatTile theme={t} icon="scale" hue={HUE.weight} label="Weight" value={TODAY.weight} unit="kg"
           sub="-0.1 vs yesterday" onClick={() => nav.deep(['health', 'body'])} />
         <StatTile theme={t} icon="walk" hue={HUE.burn} label="Steps" value={TODAY.steps.toLocaleString()}
@@ -137,7 +137,7 @@ export function HealthDashboard({ theme, nav }) {
 
       {/* insight */}
       <SectionLabel theme={t} action="More" onAction={() => nav.deep(['health', 'history'])}>AI Health Insight</SectionLabel>
-      <div style={{ padding: '0 16px' }}>
+      <div style={{ padding: `0 ${SCREEN_PAD_X}px` }}>
         <Card theme={t} style={{ padding: 16 }}>
           <div style={{ display: 'flex', gap: 12 }}>
             <div style={{ width: 36, height: 36, borderRadius: 11, flexShrink: 0, display: 'flex',
@@ -163,7 +163,7 @@ export function NutritionScreen({ theme, nav }) {
     <div style={{ position: 'absolute', inset: 0, overflowY: 'auto', paddingBottom: NAV_H + 70 }}>
       <ModuleHeader theme={t} nav={nav} title="Nutrition" view="nutrition" />
       {/* summary */}
-      <div style={{ padding: '16px 16px 0' }}>
+      <div style={{ padding: `${SCREEN_PAD_X}px ${SCREEN_PAD_X}px 0` }}>
         <Card theme={t} elevated style={{ padding: 18 }}>
           <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 12 }}>
             <div>
@@ -187,13 +187,13 @@ export function NutritionScreen({ theme, nav }) {
       </div>
 
       <SectionLabel theme={t}>Meals · Today</SectionLabel>
-      <div style={{ padding: '0 16px', display: 'flex', flexDirection: 'column', gap: 10 }}>
+      <div style={{ padding: `0 ${SCREEN_PAD_X}px`, display: 'flex', flexDirection: 'column', gap: 10 }}>
         {MEALS.map(meal => {
           const isOpen = open === meal.id;
           return (
             <Card key={meal.id} theme={t} style={{ overflow: 'hidden' }}>
               <div onClick={() => setOpen(isOpen ? null : meal.id)} style={{ display: 'flex', alignItems: 'center',
-                gap: 12, padding: '14px 16px', cursor: 'pointer' }}>
+                gap: 12, padding: `14px ${SCREEN_PAD_X}px`, cursor: 'pointer' }}>
                 <div style={{ width: 40, height: 40, borderRadius: 12, display: 'flex', alignItems: 'center',
                   justifyContent: 'center', fontSize: 20, background: t.surface2 }}>{meal.items[0].emoji}</div>
                 <div style={{ flex: 1 }}>
@@ -204,7 +204,7 @@ export function NutritionScreen({ theme, nav }) {
                 <Icon name={isOpen ? 'chevronUp' : 'chevronDown'} size={18} style={{ color: t.text3 }} />
               </div>
               {isOpen && (
-                <div style={{ padding: '0 16px 8px', borderTop: `1px solid ${t.border}` }}>
+                <div style={{ padding: `0 ${SCREEN_PAD_X}px 8px`, borderTop: `1px solid ${t.border}` }}>
                   {meal.items.map((it, i) => (
                     <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 11, padding: '11px 0',
                       borderTop: i ? `1px solid ${t.border}` : 'none' }}>
@@ -225,7 +225,7 @@ export function NutritionScreen({ theme, nav }) {
       </div>
 
       {/* sticky add bar */}
-      <div style={{ position: 'absolute', left: 0, right: 0, bottom: NAV_H - 8, padding: '0 16px', zIndex: 30 }}>
+      <div style={{ position: 'absolute', left: 0, right: 0, bottom: NAV_H - 8, padding: `0 ${SCREEN_PAD_X}px`, zIndex: Z.float }}>
         <Button theme={t} onClick={() => nav.quick('food')} icon="plus"
           style={{ boxShadow: `0 10px 30px ${t.accent.glow}` }}>Add Food</Button>
       </div>
@@ -241,7 +241,7 @@ export function BodyScreen({ theme, nav }) {
     <div style={{ position: 'absolute', inset: 0, overflowY: 'auto', paddingBottom: NAV_H + 12 }}>
       <ModuleHeader theme={t} nav={nav} title="Body Metrics" view="body" />
       {/* weight hero */}
-      <div style={{ padding: '16px 16px 0' }}>
+      <div style={{ padding: `${SCREEN_PAD_X}px ${SCREEN_PAD_X}px 0` }}>
         <Card theme={t} elevated style={{ padding: 18 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
             <div>
@@ -281,7 +281,7 @@ export function BodyScreen({ theme, nav }) {
       </div>
 
       <SectionLabel theme={t}>Measurements</SectionLabel>
-      <div style={{ padding: '0 16px', display: 'flex', flexDirection: 'column', gap: 10 }}>
+      <div style={{ padding: `0 ${SCREEN_PAD_X}px`, display: 'flex', flexDirection: 'column', gap: 10 }}>
         {BODY_METRICS.slice(1).map(m => (
           <Card key={m.key} theme={t} style={{ padding: 16, display: 'flex', alignItems: 'center', gap: 14 }}>
             <div style={{ flex: 1 }}>
@@ -299,7 +299,7 @@ export function BodyScreen({ theme, nav }) {
 
       {/* progress photos */}
       <SectionLabel theme={t} action="Add" onAction={() => nav.toast('Add progress photo')}>Progress Photos</SectionLabel>
-      <div style={{ display: 'flex', gap: 10, padding: '0 16px', overflowX: 'auto' }}>
+      <div style={{ display: 'flex', gap: 10, padding: `0 ${SCREEN_PAD_X}px`, overflowX: 'auto' }}>
         {['Apr 1', 'May 1', 'Jun 1'].map((d, i) => (
           <div key={d} style={{ width: 110, flexShrink: 0 }}>
             <div style={{ height: 140, borderRadius: 16, border: `1px dashed ${t.border2}`,
@@ -321,7 +321,7 @@ export function HistoryScreen({ theme, nav }) {
   return (
     <div style={{ position: 'absolute', inset: 0, overflowY: 'auto', paddingBottom: NAV_H + 12 }}>
       <ModuleHeader theme={t} nav={nav} title="History" view="history" />
-      <div style={{ display: 'flex', gap: 8, padding: '16px 16px 0' }}>
+      <div style={{ display: 'flex', gap: 8, padding: `${SCREEN_PAD_X}px ${SCREEN_PAD_X}px 0` }}>
         {['Daily', 'Weekly', 'Monthly'].map(p => (
           <Chip key={p} theme={t} active={period === p} onClick={() => setPeriod(p)}
             style={{ flex: 1, justifyContent: 'center' }}>{p}</Chip>
@@ -330,7 +330,7 @@ export function HistoryScreen({ theme, nav }) {
 
       {/* calories */}
       <SectionLabel theme={t}>Calories</SectionLabel>
-      <div style={{ padding: '0 16px' }}>
+      <div style={{ padding: `0 ${SCREEN_PAD_X}px` }}>
         <Card theme={t} style={{ padding: 16 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 14 }}>
             <div>
@@ -357,7 +357,7 @@ export function HistoryScreen({ theme, nav }) {
 
       {/* protein */}
       <SectionLabel theme={t}>Protein</SectionLabel>
-      <div style={{ padding: '0 16px' }}>
+      <div style={{ padding: `0 ${SCREEN_PAD_X}px` }}>
         <Card theme={t} style={{ padding: 16 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 12 }}>
             <span style={{ fontSize: 13, color: t.text2 }}>Daily protein (g)</span>
@@ -373,7 +373,7 @@ export function HistoryScreen({ theme, nav }) {
 
       {/* workout consistency */}
       <SectionLabel theme={t}>Workout Consistency</SectionLabel>
-      <div style={{ padding: '0 16px' }}>
+      <div style={{ padding: `0 ${SCREEN_PAD_X}px` }}>
         <Card theme={t} style={{ padding: 16 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
             <div>
@@ -387,7 +387,7 @@ export function HistoryScreen({ theme, nav }) {
               <div key={i} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 7 }}>
                 <div style={{ width: 30, height: 30, borderRadius: 9, display: 'flex', alignItems: 'center',
                   justifyContent: 'center', background: done ? HUE.workout : t.surface2,
-                  border: `1px solid ${done ? HUE.workout : t.border}`, color: done ? '#fff' : t.text3 }}>
+                  border: `1px solid ${done ? HUE.workout : t.border}`, color: done ? ON_ACCENT : t.text3 }}>
                   {done ? <Icon name="check" size={15} /> : <span style={{ fontSize: 11 }}>—</span>}</div>
                 <span style={{ fontFamily: MONO, fontSize: 10.5, color: t.text3 }}>{WEEK_LABELS[i]}</span>
               </div>
@@ -398,7 +398,7 @@ export function HistoryScreen({ theme, nav }) {
 
       {/* AI observations */}
       <SectionLabel theme={t}>AI Observations</SectionLabel>
-      <div style={{ padding: '0 16px', display: 'flex', flexDirection: 'column', gap: 10 }}>
+      <div style={{ padding: `0 ${SCREEN_PAD_X}px`, display: 'flex', flexDirection: 'column', gap: 10 }}>
         {INSIGHTS.map(ins => (
           <Card key={ins.id} theme={t} style={{ padding: 15 }}>
             <div style={{ display: 'flex', gap: 12 }}>

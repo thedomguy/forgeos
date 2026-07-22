@@ -2,7 +2,7 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { Icon } from './icons.jsx';
 import { IconBtn, Tag } from './ui.jsx';
-import { FONT, MONO, HUE, STATUS_H } from './theme.jsx';
+import { FONT, MONO, HUE, STATUS_H, ON_ACCENT, SCREEN_PAD_X } from './theme.jsx';
 import { MODULES, SUGGESTIONS, ASSISTANT_ANSWERS } from './data.js';
 
 function ChartCard({ chart, theme }) {
@@ -135,7 +135,7 @@ export function AssistantScreen({ theme, nav, seed, onSeedUsed }) {
       <div style={{ padding: `${STATUS_H + 6}px 20px 12px`, display: 'flex',
         alignItems: 'center', gap: 12, borderBottom: `1px solid ${t.border}` }}>
         <div style={{ width: 40, height: 40, borderRadius: 12, display: 'flex', alignItems: 'center',
-          justifyContent: 'center', color: '#fff', background: `linear-gradient(135deg, ${t.accent.g1}, ${t.accent.g2})`,
+          justifyContent: 'center', color: ON_ACCENT, background: `linear-gradient(135deg, ${t.accent.g1}, ${t.accent.g2})`,
           boxShadow: `0 6px 18px ${t.accent.glow}` }}><Icon name="spark" size={21} /></div>
         <div style={{ flex: 1 }}>
           <div style={{ fontSize: 18, fontWeight: 680, letterSpacing: -0.3 }}>Forge Assistant</div>
@@ -148,12 +148,12 @@ export function AssistantScreen({ theme, nav, seed, onSeedUsed }) {
       </div>
 
       {/* thread */}
-      <div ref={scrollRef} style={{ flex: 1, overflowY: 'auto', padding: '16px 16px 8px' }}>
+      <div ref={scrollRef} style={{ flex: 1, overflowY: 'auto', padding: `${SCREEN_PAD_X}px ${SCREEN_PAD_X}px 8px` }}>
         {empty && (
           <div style={{ paddingTop: 30 }}>
             <div style={{ textAlign: 'center', marginBottom: 26 }}>
               <div style={{ width: 64, height: 64, borderRadius: 20, margin: '0 auto 16px', display: 'flex',
-                alignItems: 'center', justifyContent: 'center', color: '#fff',
+                alignItems: 'center', justifyContent: 'center', color: ON_ACCENT,
                 background: `linear-gradient(135deg, ${t.accent.g1}, ${t.accent.g2})`,
                 boxShadow: `0 12px 30px ${t.accent.glow}` }}><Icon name="spark" size={30} /></div>
               <div style={{ fontSize: 20, fontWeight: 680, letterSpacing: -0.4 }}>Ask Forge anything</div>
@@ -164,7 +164,7 @@ export function AssistantScreen({ theme, nav, seed, onSeedUsed }) {
             <div style={{ display: 'flex', flexDirection: 'column', gap: 9 }}>
               {SUGGESTIONS.map(s => (
                 <button key={s} onClick={() => ask(s)} style={{ display: 'flex', alignItems: 'center', gap: 11,
-                  padding: '14px 16px', borderRadius: 15, cursor: 'pointer', textAlign: 'left', width: '100%',
+                  padding: `14px ${SCREEN_PAD_X}px`, borderRadius: 15, cursor: 'pointer', textAlign: 'left', width: '100%',
                   background: t.surface, border: `1px solid ${t.border}`, color: t.text }}>
                   <Icon name="spark" size={17} style={{ color: t.accent.solid }} />
                   <span style={{ flex: 1, fontSize: 14, fontWeight: 530 }}>{s}</span>
@@ -179,13 +179,13 @@ export function AssistantScreen({ theme, nav, seed, onSeedUsed }) {
           m.role === 'user' ? (
             <div key={i} style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 14 }}>
               <div style={{ maxWidth: '82%', padding: '11px 15px', borderRadius: '18px 18px 5px 18px',
-                background: `linear-gradient(135deg, ${t.accent.g1}, ${t.accent.g2})`, color: '#fff',
+                background: `linear-gradient(135deg, ${t.accent.g1}, ${t.accent.g2})`, color: ON_ACCENT,
                 fontSize: 14.5, lineHeight: 1.45, fontWeight: 500 }}>{m.text}</div>
             </div>
           ) : (
             <div key={i} className={m.animate ? 'forge-rise' : ''} style={{ display: 'flex', gap: 10, marginBottom: 18 }}>
               <div style={{ width: 30, height: 30, borderRadius: 9, flexShrink: 0, display: 'flex',
-                alignItems: 'center', justifyContent: 'center', color: '#fff', marginTop: 2,
+                alignItems: 'center', justifyContent: 'center', color: ON_ACCENT, marginTop: 2,
                 background: `linear-gradient(135deg, ${t.accent.g1}, ${t.accent.g2})` }}><Icon name="spark" size={16} /></div>
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ fontSize: 14.5, lineHeight: 1.55, color: t.text }}>{m.text}</div>
@@ -200,7 +200,7 @@ export function AssistantScreen({ theme, nav, seed, onSeedUsed }) {
         {thinking && (
           <div style={{ display: 'flex', gap: 10, marginBottom: 18 }}>
             <div style={{ width: 30, height: 30, borderRadius: 9, flexShrink: 0, display: 'flex',
-              alignItems: 'center', justifyContent: 'center', color: '#fff',
+              alignItems: 'center', justifyContent: 'center', color: ON_ACCENT,
               background: `linear-gradient(135deg, ${t.accent.g1}, ${t.accent.g2})` }}><Icon name="spark" size={16} /></div>
             <div style={{ paddingTop: 4 }}>
               <TypingDots theme={t} />
@@ -214,7 +214,7 @@ export function AssistantScreen({ theme, nav, seed, onSeedUsed }) {
       <div style={{ padding: '10px 14px', paddingBottom: 28, borderTop: `1px solid ${t.border}`,
         background: t.navBg, backdropFilter: 'blur(20px)' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
-          <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 9, padding: '6px 6px 6px 16px',
+          <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 9, padding: `6px 6px 6px ${SCREEN_PAD_X}px`,
             background: t.surface, borderRadius: 22, border: `1px solid ${t.border2}` }}>
             <input value={draft} onChange={e => setDraft(e.target.value)}
               onKeyDown={e => e.key === 'Enter' && ask(draft)}
@@ -223,7 +223,7 @@ export function AssistantScreen({ theme, nav, seed, onSeedUsed }) {
             <IconBtn name="mic" theme={t} size={34} iconSize={18} onClick={() => nav.toast('Voice input')} />
           </div>
           <button onClick={() => ask(draft)} disabled={!draft.trim()} style={{ width: 46, height: 46, borderRadius: 16,
-            border: 'none', cursor: draft.trim() ? 'pointer' : 'default', flexShrink: 0, color: '#fff',
+            border: 'none', cursor: draft.trim() ? 'pointer' : 'default', flexShrink: 0, color: ON_ACCENT,
             display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: draft.trim() ? 1 : 0.4,
             background: `linear-gradient(135deg, ${t.accent.g1}, ${t.accent.g2})`,
             boxShadow: draft.trim() ? `0 6px 18px ${t.accent.glow}` : 'none' }}>

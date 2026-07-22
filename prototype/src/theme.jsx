@@ -8,12 +8,24 @@ export const ACCENTS = {
 };
 // semantic / module colors (theme-independent)
 export const HUE = {
-  cal: '#ff6b4a', protein: '#4f8cff', carbs: '#f5a623', fat: '#c084fc',
+  cal: '#ff6b4a', calLight: '#ff9d6b', protein: '#4f8cff', carbs: '#f5a623', fat: '#c084fc',
   burn: '#34d399', water: '#38bdf8', weight: '#a78bfa', workout: '#ff6b4a',
   health: '#34d399', finance: '#fbbf24', learning: '#38bdf8',
   projects: '#fb7185', documents: '#a78bfa', travel: '#2dd4bf',
   tasks: '#f97316', home: '#60a5fa', relationships: '#f472b6',
 };
+// status color (theme-independent) — used for destructive actions/errors
+export const DANGER = { solid: '#ff5470', text: '#ff7088', tint: '#ff547044' };
+// text/icon color placed on top of a solid or gradient accent fill — readable in both themes
+export const ON_ACCENT = '#fff';
+// always-dark chip background (e.g. toast) — needs contrast against any page background, in either theme
+export const SCRIM = 'rgba(22,24,30,0.95)';
+// shared z-index stack — keeps overlay layering coordinated across screens
+export const Z = { base: 1, shell: 10, sticky: 20, float: 30, floatHi: 55, nav: 60, sheet: 100, toast: 110 };
+// shared corner-radius scale for non-circular surfaces
+export const RADIUS = { chip: 10, control: 12, card: 22 };
+// horizontal gutter shared by every screen's content
+export const SCREEN_PAD_X = 16;
 
 export function makeTheme(dark, accentKey) {
   const a = ACCENTS[accentKey] || ACCENTS.violet;
@@ -65,7 +77,7 @@ export function AppShell({ children, theme }) {
       <div style={{ position: 'absolute', inset: 0, background: t.bgGrad, pointerEvents: 'none' }} />
       {/* content layer insets for the safe area so screens/nav/sheets clear the notch */}
       <div style={{
-        position: 'absolute', inset: 0, zIndex: 10,
+        position: 'absolute', inset: 0, zIndex: Z.shell,
         paddingTop: 'env(safe-area-inset-top)', paddingBottom: 'env(safe-area-inset-bottom)',
       }}>{children}</div>
     </div>

@@ -2,7 +2,7 @@
 import { Fragment, useState } from 'react';
 import { Icon } from './icons.jsx';
 import { Screen, Card, Chip, IconBtn, Ring, Tag, Avatar } from './ui.jsx';
-import { FONT, MONO, HUE, ACCENTS } from './theme.jsx';
+import { FONT, MONO, HUE, ACCENTS, ON_ACCENT, Z, SCREEN_PAD_X } from './theme.jsx';
 import { MODULES, TODAY, QUICK_ACTIONS, INSIGHTS, TIMELINE } from './data.js';
 
 // shared big header with optional spotlight/command button
@@ -56,7 +56,7 @@ export function HomeScreen({ theme, nav }) {
           padding: 0, cursor: 'pointer' }}><Avatar theme={t} size={42} ring /></button>} />
 
       {/* Today hero */}
-      <div style={{ padding: '0 16px' }}>
+      <div style={{ padding: `0 ${SCREEN_PAD_X}px` }}>
         <Card theme={t} elevated style={{ padding: 20 }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
             <div>
@@ -68,7 +68,7 @@ export function HomeScreen({ theme, nav }) {
               </div>
             </div>
             <Ring theme={t} value={TODAY.caloriesIn} max={TODAY.caloriesGoal} size={84} stroke={9}
-              gradient={[HUE.cal, '#ff9d6b']}>
+              gradient={[HUE.cal, HUE.calLight]}>
               <span style={{ fontFamily: MONO, fontSize: 19, fontWeight: 600 }}>{inPct}%</span>
               <span style={{ fontSize: 10, color: t.text3, marginTop: 1 }}>of goal</span>
             </Ring>
@@ -87,7 +87,7 @@ export function HomeScreen({ theme, nav }) {
 
       {/* Quick actions */}
       <SectionLabel theme={t}>Quick Actions</SectionLabel>
-      <div style={{ display: 'flex', gap: 10, padding: '0 16px', overflowX: 'auto' }}>
+      <div style={{ display: 'flex', gap: 10, padding: `0 ${SCREEN_PAD_X}px`, overflowX: 'auto' }}>
         {QUICK_ACTIONS.map(a => (
           <button key={a.id} onClick={() => nav.quick(a.id)} style={{ flex: '1 0 0', minWidth: 78,
             display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 9, padding: '15px 8px',
@@ -101,7 +101,7 @@ export function HomeScreen({ theme, nav }) {
 
       {/* Module summaries */}
       <SectionLabel theme={t} action="All modules" onAction={() => nav.tab('modules')}>Modules</SectionLabel>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, padding: '0 16px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, padding: `0 ${SCREEN_PAD_X}px` }}>
         {MODULES.slice(0, 4).map(m => (
           <Card key={m.id} theme={t} onClick={() => m.installed ? nav.deep(['health']) : nav.toast(m.name + ' coming soon')}
             style={{ padding: 15, opacity: m.installed ? 1 : 0.62 }}>
@@ -121,13 +121,13 @@ export function HomeScreen({ theme, nav }) {
 
       {/* AI insight */}
       <SectionLabel theme={t} action="Ask Forge" onAction={() => nav.tab('assistant')}>AI Insight</SectionLabel>
-      <div style={{ padding: '0 16px' }}>
+      <div style={{ padding: `0 ${SCREEN_PAD_X}px` }}>
         <Card theme={t} onClick={() => nav.tab('assistant')} style={{ padding: 16,
           background: `linear-gradient(135deg, ${t.accent.solid}14, ${t.surface} 60%)`,
           border: `1px solid ${t.accent.solid}33` }}>
           <div style={{ display: 'flex', gap: 13 }}>
             <div style={{ width: 38, height: 38, borderRadius: 11, flexShrink: 0, display: 'flex',
-              alignItems: 'center', justifyContent: 'center', color: '#fff',
+              alignItems: 'center', justifyContent: 'center', color: ON_ACCENT,
               background: `linear-gradient(135deg, ${t.accent.g1}, ${t.accent.g2})` }}>
               <Icon name="spark" size={20} /></div>
             <div>
@@ -140,10 +140,10 @@ export function HomeScreen({ theme, nav }) {
 
       {/* Recent activity */}
       <SectionLabel theme={t} action="Timeline" onAction={() => nav.tab('timeline')}>Recent Activity</SectionLabel>
-      <div style={{ padding: '0 16px' }}>
+      <div style={{ padding: `0 ${SCREEN_PAD_X}px` }}>
         <Card theme={t} style={{ padding: '4px 0' }}>
           {TIMELINE.slice(0, 3).map((e, i) => (
-            <div key={e.id} style={{ display: 'flex', alignItems: 'center', gap: 13, padding: '12px 16px',
+            <div key={e.id} style={{ display: 'flex', alignItems: 'center', gap: 13, padding: `12px ${SCREEN_PAD_X}px`,
               borderTop: i ? `1px solid ${t.border}` : 'none' }}>
               <div style={{ width: 34, height: 34, borderRadius: 10, display: 'flex', alignItems: 'center',
                 justifyContent: 'center', color: e.hue, background: e.hue + '1c' }}><Icon name={e.icon} size={17} /></div>
@@ -170,13 +170,13 @@ export function ModulesScreen({ theme, nav }) {
     <Screen theme={t}>
       <ScreenHeader theme={t} nav={nav} sub="Your operating system" title="Modules" />
       <SectionLabel theme={t}>Installed</SectionLabel>
-      <div style={{ padding: '0 16px', display: 'flex', flexDirection: 'column', gap: 10 }}>
+      <div style={{ padding: `0 ${SCREEN_PAD_X}px`, display: 'flex', flexDirection: 'column', gap: 10 }}>
         {installed.map(m => (
           <Card key={m.id} theme={t} elevated onClick={() => nav.deep(['health'])} style={{ padding: 16,
             background: `linear-gradient(120deg, ${m.hue}14, ${t.surface} 55%)`, border: `1px solid ${m.hue}33` }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
               <div style={{ width: 50, height: 50, borderRadius: 15, display: 'flex', alignItems: 'center',
-                justifyContent: 'center', color: '#fff', background: `linear-gradient(135deg, ${m.hue}, ${m.hue}aa)`,
+                justifyContent: 'center', color: ON_ACCENT, background: `linear-gradient(135deg, ${m.hue}, ${m.hue}aa)`,
                 boxShadow: `0 8px 20px ${m.hue}40` }}><Icon name={m.icon} size={25} /></div>
               <div style={{ flex: 1 }}>
                 <div style={{ fontSize: 17, fontWeight: 680 }}>{m.name}</div>
@@ -189,7 +189,7 @@ export function ModulesScreen({ theme, nav }) {
       </div>
 
       <SectionLabel theme={t}>Available to Add</SectionLabel>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, padding: '0 16px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, padding: `0 ${SCREEN_PAD_X}px` }}>
         {future.map(m => (
           <Card key={m.id} theme={t} onClick={() => nav.toast(m.name + ' coming soon')} style={{ padding: 15 }}>
             <div style={{ width: 40, height: 40, borderRadius: 12, display: 'flex', alignItems: 'center',
@@ -224,11 +224,11 @@ export function TimelineScreen({ theme, nav }) {
     <Screen theme={t}>
       <ScreenHeader theme={t} nav={nav} sub={WEEKDAY_DATE} title="Timeline"
         trailing={<IconBtn name="search" theme={t} size={42} />} />
-      <div style={{ display: 'flex', gap: 8, padding: '0 16px 6px', overflowX: 'auto' }}>
+      <div style={{ display: 'flex', gap: 8, padding: `0 ${SCREEN_PAD_X}px 6px`, overflowX: 'auto' }}>
         {filters.map(f => <Chip key={f.id} theme={t} active={filter === f.id}
           onClick={() => setFilter(f.id)}>{f.label}</Chip>)}
       </div>
-      <div style={{ padding: '14px 16px 0' }}>
+      <div style={{ padding: `14px ${SCREEN_PAD_X}px 0` }}>
         <div style={{ position: 'relative', paddingLeft: 38 }}>
           {/* vertical line */}
           <div style={{ position: 'absolute', left: 17, top: 6, bottom: 6, width: 2,
@@ -237,7 +237,7 @@ export function TimelineScreen({ theme, nav }) {
             <div key={e.id} style={{ position: 'relative', marginBottom: 14 }}>
               <div style={{ position: 'absolute', left: -38, top: 6, width: 36, height: 36, borderRadius: 11,
                 display: 'flex', alignItems: 'center', justifyContent: 'center', color: e.hue,
-                background: e.hue + '1c', border: `3px solid ${t.bg}`, zIndex: 1 }}>
+                background: e.hue + '1c', border: `3px solid ${t.bg}`, zIndex: Z.base }}>
                 <Icon name={e.icon} size={17} /></div>
               <Card theme={t} accent={e.accentRow ? e.hue : null} style={{ padding: '12px 14px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -262,13 +262,13 @@ export function ProfileScreen({ theme, nav, dark, setDark, accentKey, setAccentK
     { label: 'Account', rows: [
       { icon: 'user', c: t.accent.solid, name: 'Personal Info', detail: 'Alex Morgan' },
       { icon: 'target', c: HUE.health, name: 'Goals', detail: '72 kg · 160g protein' },
-      { icon: 'sliders', c: '#38bdf8', name: 'Preferences', detail: 'Metric · INR' },
+      { icon: 'sliders', c: HUE.water, name: 'Preferences', detail: 'Metric · INR' },
     ]},
     { label: 'Forge', rows: [
       { icon: 'spark', c: t.accent.solid, name: 'AI Preferences', detail: 'Proactive' },
-      { icon: 'link', c: '#2dd4bf', name: 'Connected Services', detail: '3 active' },
-      { icon: 'bell', c: '#fbbf24', name: 'Notifications' },
-      { icon: 'shield', c: '#34d399', name: 'Privacy & Data' },
+      { icon: 'link', c: HUE.travel, name: 'Connected Services', detail: '3 active' },
+      { icon: 'bell', c: HUE.finance, name: 'Notifications' },
+      { icon: 'shield', c: HUE.health, name: 'Privacy & Data' },
     ]},
   ];
   return (
@@ -276,7 +276,7 @@ export function ProfileScreen({ theme, nav, dark, setDark, accentKey, setAccentK
       <ScreenHeader theme={t} nav={nav} sub="Your account" title="Profile" onCommand={false}
         trailing={<IconBtn name="settings" theme={t} size={42} />} />
       {/* identity card */}
-      <div style={{ padding: '0 16px' }}>
+      <div style={{ padding: `0 ${SCREEN_PAD_X}px` }}>
         <Card theme={t} elevated style={{ padding: 20, display: 'flex', alignItems: 'center', gap: 16 }}>
           <Avatar theme={t} size={60} ring />
           <div style={{ flex: 1 }}>
@@ -290,7 +290,7 @@ export function ProfileScreen({ theme, nav, dark, setDark, accentKey, setAccentK
         </Card>
       </div>
       {/* lifetime stats */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10, padding: '14px 16px 0' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10, padding: `14px ${SCREEN_PAD_X}px 0` }}>
         {[['Days active', '148'], ['Workouts', '92'], ['Entries', '2.1k']].map(([l, v]) => (
           <Card key={l} theme={t} style={{ padding: '14px 12px', textAlign: 'center' }}>
             <div style={{ fontFamily: MONO, fontSize: 20, fontWeight: 600, color: t.accent.solid }}>{v}</div>
@@ -301,7 +301,7 @@ export function ProfileScreen({ theme, nav, dark, setDark, accentKey, setAccentK
 
       {/* appearance — real settings (dark mode + accent), replacing the design-tool's Tweaks panel */}
       <SectionLabel theme={t}>Appearance</SectionLabel>
-      <div style={{ padding: '0 16px' }}>
+      <div style={{ padding: `0 ${SCREEN_PAD_X}px` }}>
         <Card theme={t} style={{ padding: 16 }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <span style={{ fontSize: 14, fontWeight: 550 }}>Dark mode</span>
@@ -309,7 +309,7 @@ export function ProfileScreen({ theme, nav, dark, setDark, accentKey, setAccentK
               position: 'relative', width: 46, height: 27, borderRadius: 100, border: 'none', cursor: 'pointer',
               background: dark ? t.accent.solid : t.track, transition: 'background .15s' }}>
               <span style={{ position: 'absolute', top: 2.5, left: dark ? 21 : 2.5, width: 22, height: 22,
-                borderRadius: '50%', background: '#fff', boxShadow: '0 1px 3px rgba(0,0,0,.3)',
+                borderRadius: '50%', background: ON_ACCENT, boxShadow: '0 1px 3px rgba(0,0,0,.3)',
                 transition: 'left .15s' }} />
             </button>
           </div>
@@ -323,7 +323,7 @@ export function ProfileScreen({ theme, nav, dark, setDark, accentKey, setAccentK
                   border: accentKey === key ? `2px solid ${t.text}` : '2px solid transparent',
                   boxShadow: accentKey === key ? `0 0 0 3px ${t.bg}, 0 0 0 4px ${ACCENTS[key].solid}` : 'none',
                   display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  {accentKey === key && <Icon name="check" size={16} style={{ color: '#fff' }} strokeWidth={2.6} />}
+                  {accentKey === key && <Icon name="check" size={16} style={{ color: ON_ACCENT }} strokeWidth={2.6} />}
                 </button>
               ))}
             </div>
@@ -334,11 +334,11 @@ export function ProfileScreen({ theme, nav, dark, setDark, accentKey, setAccentK
       {groups.map(g => (
         <Fragment key={g.label}>
           <SectionLabel theme={t}>{g.label}</SectionLabel>
-          <div style={{ padding: '0 16px' }}>
+          <div style={{ padding: `0 ${SCREEN_PAD_X}px` }}>
             <Card theme={t} style={{ padding: '4px 0' }}>
               {g.rows.map((r, i) => (
                 <div key={r.name} onClick={() => nav.toast(r.name)} style={{ display: 'flex', alignItems: 'center',
-                  gap: 13, padding: '13px 16px', cursor: 'pointer',
+                  gap: 13, padding: `13px ${SCREEN_PAD_X}px`, cursor: 'pointer',
                   borderTop: i ? `1px solid ${t.border}` : 'none' }}>
                   <div style={{ width: 32, height: 32, borderRadius: 9, display: 'flex', alignItems: 'center',
                     justifyContent: 'center', color: r.c, background: r.c + '1c' }}><Icon name={r.icon} size={17} /></div>

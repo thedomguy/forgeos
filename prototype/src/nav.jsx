@@ -2,7 +2,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { Icon } from './icons.jsx';
 import { Sheet, Tag } from './ui.jsx';
-import { FONT, MONO, STATUS_H, HUE } from './theme.jsx';
+import { FONT, MONO, STATUS_H, HUE, ON_ACCENT, Z, SCREEN_PAD_X } from './theme.jsx';
 import { MODULES, QUICK_ACTIONS } from './data.js';
 
 export const NAV_ITEMS = [
@@ -16,7 +16,7 @@ export const NAV_ITEMS = [
 export function BottomNav({ theme, active, onTab }) {
   const t = theme;
   return (
-    <div style={{ position: 'absolute', left: 0, right: 0, bottom: 0, zIndex: 60,
+    <div style={{ position: 'absolute', left: 0, right: 0, bottom: 0, zIndex: Z.nav,
       paddingBottom: 'max(10px, env(safe-area-inset-bottom))', pointerEvents: 'none' }}>
       <div style={{
         pointerEvents: 'auto', background: t.navBg, backdropFilter: 'blur(24px) saturate(180%)',
@@ -33,7 +33,7 @@ export function BottomNav({ theme, active, onTab }) {
                 flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4,
                 cursor: 'pointer', background: 'none', border: 'none', padding: '2px 0' }}>
                 <div style={{ width: 46, height: 32, borderRadius: 16, display: 'flex',
-                  alignItems: 'center', justifyContent: 'center', color: '#fff',
+                  alignItems: 'center', justifyContent: 'center', color: ON_ACCENT,
                   background: `linear-gradient(135deg, ${t.accent.g1}, ${t.accent.g2})`,
                   boxShadow: `0 6px 18px ${t.accent.glow}` }}>
                   <Icon name="spark" size={20} strokeWidth={2} />
@@ -95,7 +95,7 @@ export function Spotlight({ open, onClose, theme, nav }) {
       <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
         {/* search field */}
         <div style={{ padding: STATUS_H + 8 + 'px 16px 12px', display: 'flex', gap: 10, alignItems: 'center' }}>
-          <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 10, padding: '13px 16px',
+          <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 10, padding: `13px ${SCREEN_PAD_X}px`,
             background: t.surface2, borderRadius: 16, border: `1px solid ${t.border2}` }}>
             <Icon name="search" size={20} style={{ color: t.text3 }} />
             <input ref={inputRef} value={q} onChange={e => setQ(e.target.value)}
@@ -108,7 +108,7 @@ export function Spotlight({ open, onClose, theme, nav }) {
             fontSize: 15, fontWeight: 600, fontFamily: FONT, cursor: 'pointer' }}>Cancel</button>
         </div>
 
-        <div style={{ flex: 1, overflowY: 'auto', padding: '0 16px 24px' }}>
+        <div style={{ flex: 1, overflowY: 'auto', padding: `0 ${SCREEN_PAD_X}px 24px` }}>
           {/* Ask Forge row appears when typing */}
           {askActive && (
             <button onClick={() => { onClose(); setTimeout(() => nav.ask(q), 120); }} style={{
@@ -117,7 +117,7 @@ export function Spotlight({ open, onClose, theme, nav }) {
               background: `linear-gradient(135deg, ${t.accent.solid}1f, ${t.accent.solid}0a)`,
               border: `1px solid ${t.accent.solid}40` }}>
               <div style={{ width: 38, height: 38, borderRadius: 11, display: 'flex', alignItems: 'center',
-                justifyContent: 'center', color: '#fff',
+                justifyContent: 'center', color: ON_ACCENT,
                 background: `linear-gradient(135deg, ${t.accent.g1}, ${t.accent.g2})` }}>
                 <Icon name="spark" size={20} /></div>
               <div style={{ flex: 1 }}>

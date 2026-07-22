@@ -1,7 +1,7 @@
 // ui.jsx — Forge OS design primitives.
 import { useState, useEffect, useRef } from 'react';
 import { Icon } from './icons.jsx';
-import { FONT, MONO, STATUS_H, NAV_H } from './theme.jsx';
+import { FONT, MONO, STATUS_H, NAV_H, DANGER, ON_ACCENT, Z, RADIUS } from './theme.jsx';
 
 // ── Scroll screen wrapper ──────────────────────────────────────
 export function Screen({ children, theme, padTop = STATUS_H + 6, padBottom = NAV_H + 12, scrollRef, onScroll, style = {} }) {
@@ -18,7 +18,7 @@ export function Card({ children, theme, style = {}, elevated = false, onClick, a
   const t = theme;
   return (
     <div onClick={onClick} style={{
-      background: elevated ? t.surface2 : t.surface, borderRadius: 22,
+      background: elevated ? t.surface2 : t.surface, borderRadius: RADIUS.card,
       border: `1px solid ${accent ? accent + '40' : t.border}`,
       boxShadow: elevated ? t.shadow : 'none',
       cursor: onClick ? 'pointer' : 'default', position: 'relative', overflow: 'hidden',
@@ -51,11 +51,11 @@ export function Button({ children, theme, kind = 'primary', size = 'md', onClick
     opacity: disabled ? 0.45 : 1, transition: 'transform .12s, filter .15s', width: '100%', ...style,
   };
   const kinds = {
-    primary: { background: `linear-gradient(135deg, ${t.accent.g1}, ${t.accent.g2})`, color: '#fff',
+    primary: { background: `linear-gradient(135deg, ${t.accent.g1}, ${t.accent.g2})`, color: ON_ACCENT,
       boxShadow: `0 8px 24px ${t.accent.glow}` },
     soft: { background: t.accent.solid + '1f', color: t.accent.solid, border: `1px solid ${t.accent.solid}33` },
     ghost: { background: t.surface2, color: t.text, border: `1px solid ${t.border}` },
-    danger: { background: '#ff5470' + '1f', color: '#ff7088', border: '1px solid #ff547044' },
+    danger: { background: DANGER.solid + '1f', color: DANGER.text, border: `1px solid ${DANGER.tint}` },
   };
   return <button onClick={disabled ? undefined : onClick} style={{ ...base, ...kinds[kind] }}>
     {icon && <Icon name={icon} size={size === 'sm' ? 16 : 18} />}{children}</button>;
@@ -151,7 +151,7 @@ export function Sheet({ open, onClose, theme, children, height, full = false }) 
   }, [open]);
   if (!mounted) return null;
   return (
-    <div style={{ position: 'absolute', inset: 0, zIndex: 100, display: 'flex', alignItems: 'flex-end' }}>
+    <div style={{ position: 'absolute', inset: 0, zIndex: Z.sheet, display: 'flex', alignItems: 'flex-end' }}>
       <div onClick={onClose} style={{ position: 'absolute', inset: 0, background: t.overlay,
         opacity: show ? 1 : 0, transition: 'opacity .28s', backdropFilter: 'blur(2px)' }} />
       <div style={{ position: 'relative', width: '100%', maxHeight: full ? '100%' : '90%',
@@ -180,7 +180,7 @@ export function Avatar({ size = 40, theme, ring }) {
   const t = theme;
   return <div style={{ width: size, height: size, borderRadius: '50%', flexShrink: 0,
     background: `linear-gradient(135deg, ${t.accent.g1}, ${t.accent.g2})`,
-    display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff',
+    display: 'flex', alignItems: 'center', justifyContent: 'center', color: ON_ACCENT,
     fontWeight: 700, fontSize: size * 0.4, fontFamily: FONT,
     boxShadow: ring ? `0 0 0 2px ${t.bg}, 0 0 0 4px ${t.accent.solid}66` : 'none' }}>A</div>;
 }
