@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "deploy": "vite build && cp -r dist/* /var/www/domguy.dev/prototypes/forgeos/ && chown -R www-data:www-data /var/www/domguy.dev/prototypes/forgeos"
   },
   "dependencies": {
     "react": "^18.3.1",
