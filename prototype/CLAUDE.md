@@ -4,7 +4,7 @@ React + Vite prototype for ForgeOS.
 
 ## Commands
 
-- `npm run dev` — dev server on `0.0.0.0:5173` (reachable at `http://<VPS public IP>:5173/` — this port is open in ufw)
+- `npm run dev` — local dev server (localhost only; not exposed on the network)
 - `npm run build` — production build to `dist/`
 - `npm run deploy` — build and publish to the live site in one step
 
@@ -19,5 +19,5 @@ for built asset URLs to resolve correctly. Update it if the deploy path ever cha
 
 `npm run deploy` is the whole flow: builds, copies `dist/*` into
 `/var/www/domguy.dev/prototypes/forgeos/`, and fixes ownership to `www-data`. Run it
-after any change you want visible on the live URL — the dev server on :5173 is separate
-and does not auto-publish.
+after any change you want visible on the live URL. There is no separate running dev
+process on this VPS — deploy is build-and-copy only, nothing auto-publishes.
