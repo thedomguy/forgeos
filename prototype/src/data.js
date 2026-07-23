@@ -68,7 +68,7 @@ export const MEALS = [
 // swatch colors below are an independent categorical palette, not tied to
 // HUE — don't dedupe against HUE values that happen to match.
 export const WORKOUT_TEMPLATES = [
-  { id: 'push', name: 'Push',  hue: HUE.workout, sub: 'Chest · Shoulders · Triceps', last: '3d ago', exCount: 6 },
+  { id: 'push', name: 'Push',  hue: HUE.workout, sub: 'Chest · Shoulders · Triceps', last: '3d ago', exCount: 5 },
   { id: 'pull', name: 'Pull',  hue: '#4f8cff', sub: 'Back · Biceps · Rear delts', last: '5d ago', exCount: 6 },
   { id: 'legs', name: 'Legs',  hue: '#34d399', sub: 'Quads · Hamstrings · Calves', last: '2d ago', exCount: 5 },
   { id: 'upper',name: 'Upper', hue: '#c084fc', sub: 'Full upper body', last: '1w ago', exCount: 7 },
@@ -170,4 +170,156 @@ export const QUICK_ACTIONS = [
   { id: 'workout', label: 'Start Workout', icon: 'dumbbell', hue: HUE.workout },
   { id: 'walk', label: 'Track Walk', icon: 'walk', hue: HUE.burn },
   { id: 'weight', label: 'Log Weight', icon: 'scale', hue: HUE.weight },
+];
+
+// ── Per-template exercise libraries ─────────────────────────────
+// Each template starts a session from its own exercises (previously every template
+// wrongly reused PUSH_EXERCISES). `prev` is illustrative last-session performance.
+export const PULL_EXERCISES = [
+  { id: 'pl1', name: 'Pull-Up', muscle: 'Lats', sets: [
+      { w: 0, reps: 10, prev: 'BW×10' }, { w: 0, reps: 8, prev: 'BW×9' }, { w: 5, reps: 6, prev: 'BW×8' } ] },
+  { id: 'pl2', name: 'Barbell Row', muscle: 'Back', sets: [
+      { w: 70, reps: 10, prev: '67.5×10' }, { w: 75, reps: 8, prev: '72.5×8' }, { w: 75, reps: 8, prev: '72.5×8' } ] },
+  { id: 'pl3', name: 'Lat Pulldown', muscle: 'Lats', sets: [
+      { w: 60, reps: 12, prev: '57.5×12' }, { w: 65, reps: 10, prev: '62.5×10' } ] },
+  { id: 'pl4', name: 'Seated Cable Row', muscle: 'Mid-back', sets: [
+      { w: 55, reps: 12, prev: '52.5×12' }, { w: 60, reps: 10, prev: '57.5×10' } ] },
+  { id: 'pl5', name: 'Face Pull', muscle: 'Rear delts', sets: [
+      { w: 25, reps: 15, prev: '22.5×15' }, { w: 27.5, reps: 12, prev: '25×12' } ] },
+  { id: 'pl6', name: 'Barbell Curl', muscle: 'Biceps', sets: [
+      { w: 30, reps: 12, prev: '27.5×12' }, { w: 32.5, reps: 10, prev: '30×10' } ] },
+];
+export const LEGS_EXERCISES = [
+  { id: 'lg1', name: 'Back Squat', muscle: 'Quads', sets: [
+      { w: 90, reps: 8, prev: '87.5×8' }, { w: 100, reps: 6, prev: '95×6' }, { w: 105, reps: 5, prev: '100×5' } ] },
+  { id: 'lg2', name: 'Romanian Deadlift', muscle: 'Hamstrings', sets: [
+      { w: 80, reps: 10, prev: '77.5×10' }, { w: 85, reps: 8, prev: '82.5×8' } ] },
+  { id: 'lg3', name: 'Leg Press', muscle: 'Quads', sets: [
+      { w: 160, reps: 12, prev: '150×12' }, { w: 170, reps: 10, prev: '160×10' } ] },
+  { id: 'lg4', name: 'Seated Leg Curl', muscle: 'Hamstrings', sets: [
+      { w: 45, reps: 14, prev: '42.5×14' }, { w: 50, reps: 12, prev: '47.5×12' } ] },
+  { id: 'lg5', name: 'Calf Raise', muscle: 'Calves', sets: [
+      { w: 70, reps: 15, prev: '65×15' }, { w: 75, reps: 15, prev: '70×15' }, { w: 80, reps: 12, prev: '75×12' } ] },
+];
+export const UPPER_EXERCISES = [
+  { id: 'up1', name: 'Bench Press', muscle: 'Chest', sets: [
+      { w: 70, reps: 8, prev: '67.5×8' }, { w: 75, reps: 6, prev: '72.5×6' } ] },
+  { id: 'up2', name: 'Barbell Row', muscle: 'Back', sets: [
+      { w: 72.5, reps: 10, prev: '70×10' }, { w: 75, reps: 8, prev: '72.5×8' } ] },
+  { id: 'up3', name: 'Overhead Press', muscle: 'Shoulders', sets: [
+      { w: 45, reps: 8, prev: '42.5×8' }, { w: 47.5, reps: 6, prev: '45×6' } ] },
+  { id: 'up4', name: 'Lat Pulldown', muscle: 'Lats', sets: [
+      { w: 62.5, reps: 12, prev: '60×12' }, { w: 65, reps: 10, prev: '62.5×10' } ] },
+  { id: 'up5', name: 'Incline Dumbbell Press', muscle: 'Upper chest', sets: [
+      { w: 26, reps: 10, prev: '24×10' }, { w: 28, reps: 8, prev: '26×8' } ] },
+  { id: 'up6', name: 'Lateral Raise', muscle: 'Side delts', sets: [
+      { w: 12, reps: 15, prev: '10×15' }, { w: 12, reps: 12, prev: '10×14' } ] },
+  { id: 'up7', name: 'Barbell Curl', muscle: 'Biceps', sets: [
+      { w: 30, reps: 12, prev: '27.5×12' }, { w: 32.5, reps: 10, prev: '30×10' } ] },
+];
+export const LOWER_EXERCISES = [
+  { id: 'lw1', name: 'Back Squat', muscle: 'Quads', sets: [
+      { w: 95, reps: 8, prev: '92.5×8' }, { w: 100, reps: 6, prev: '97.5×6' } ] },
+  { id: 'lw2', name: 'Deadlift', muscle: 'Posterior chain', sets: [
+      { w: 120, reps: 5, prev: '117.5×5' }, { w: 130, reps: 3, prev: '125×3' } ] },
+  { id: 'lw3', name: 'Leg Extension', muscle: 'Quads', sets: [
+      { w: 55, reps: 15, prev: '50×15' }, { w: 60, reps: 12, prev: '55×12' } ] },
+  { id: 'lw4', name: 'Lying Leg Curl', muscle: 'Hamstrings', sets: [
+      { w: 45, reps: 14, prev: '42.5×14' }, { w: 50, reps: 12, prev: '47.5×12' } ] },
+  { id: 'lw5', name: 'Calf Raise', muscle: 'Calves', sets: [
+      { w: 75, reps: 15, prev: '70×15' }, { w: 80, reps: 12, prev: '75×12' } ] },
+];
+// template id → exercise array (deepCopyTemplate reads this)
+export const WORKOUT_EXERCISES = {
+  push: PUSH_EXERCISES, pull: PULL_EXERCISES, legs: LEGS_EXERCISES,
+  upper: UPPER_EXERCISES, lower: LOWER_EXERCISES,
+};
+// exercises the "Add exercise" picker offers
+export const EXERCISE_LIBRARY = [
+  ...PUSH_EXERCISES, ...PULL_EXERCISES, ...LEGS_EXERCISES,
+].map(e => ({ name: e.name, muscle: e.muscle }))
+  .filter((e, i, a) => a.findIndex(x => x.name === e.name) === i);
+
+// ── Add Food sheet: simulated photo/voice detection + recent list ─
+export const DETECTED_FOOD = [
+  { n: 'Grilled chicken breast', portion: '180 g', kcal: 297, p: 56, c: 0, f: 7, conf: 0.96, emoji: '🍗' },
+  { n: 'Steamed broccoli', portion: '1 cup', kcal: 55, p: 4, c: 11, f: 1, conf: 0.93, emoji: '🥦' },
+  { n: 'Brown rice', portion: '1 cup', kcal: 216, p: 5, c: 45, f: 2, conf: 0.88, emoji: '🍚' },
+];
+export const RECENT_FOODS = [
+  { n: 'Greek yogurt bowl', kcal: 280, emoji: '🥣' },
+  { n: 'Protein shake', kcal: 160, emoji: '🥤' },
+  { n: 'Banana', kcal: 105, emoji: '🍌' },
+  { n: 'Black coffee', kcal: 5, emoji: '☕' },
+];
+
+// ── Food database (manual search in Add Food) ───────────────────
+export const FOOD_DB = [
+  { n: 'Greek yogurt bowl', kcal: 280, p: 22, c: 30, f: 8, emoji: '🥣' },
+  { n: 'Protein shake', kcal: 160, p: 30, c: 6, f: 2, emoji: '🥤' },
+  { n: 'Banana', kcal: 105, p: 1, c: 27, f: 0, emoji: '🍌' },
+  { n: 'Black coffee', kcal: 5, p: 0, c: 1, f: 0, emoji: '☕' },
+  { n: 'Grilled chicken breast', kcal: 297, p: 56, c: 0, f: 7, emoji: '🍗' },
+  { n: 'Brown rice', kcal: 216, p: 5, c: 45, f: 2, emoji: '🍚' },
+  { n: 'Steamed broccoli', kcal: 55, p: 4, c: 11, f: 1, emoji: '🥦' },
+  { n: 'Salmon fillet', kcal: 360, p: 40, c: 0, f: 22, emoji: '🐟' },
+  { n: 'Sweet potato', kcal: 180, p: 4, c: 41, f: 0, emoji: '🍠' },
+  { n: 'Whole eggs (2)', kcal: 156, p: 12, c: 1, f: 11, emoji: '🥚' },
+  { n: 'Oatmeal', kcal: 150, p: 5, c: 27, f: 3, emoji: '🥣' },
+  { n: 'Almonds (15g)', kcal: 130, p: 5, c: 5, f: 11, emoji: '🥜' },
+  { n: 'Apple', kcal: 95, p: 0, c: 25, f: 0, emoji: '🍎' },
+  { n: 'Avocado (half)', kcal: 160, p: 2, c: 9, f: 15, emoji: '🥑' },
+  { n: 'Cottage cheese', kcal: 120, p: 14, c: 5, f: 5, emoji: '🧀' },
+  { n: 'Peanut butter (1 tbsp)', kcal: 95, p: 4, c: 3, f: 8, emoji: '🥜' },
+  { n: 'Mixed salad', kcal: 90, p: 3, c: 10, f: 5, emoji: '🥗' },
+  { n: 'Turkey sandwich', kcal: 320, p: 24, c: 34, f: 9, emoji: '🥪' },
+  { n: 'Orange juice', kcal: 110, p: 2, c: 26, f: 0, emoji: '🧃' },
+  { n: 'Dark chocolate (20g)', kcal: 120, p: 2, c: 9, f: 9, emoji: '🍫' },
+];
+
+// ── History datasets (Daily / Weekly / Monthly period toggle) ───
+export const HISTORY = {
+  Daily: {
+    calories: { avg: 2140, note: 'under goal', data: [420, 740, 210, 0, 770, 0, 0], labels: ['B', 'L', 'S', '—', 'D', '—', '—'], highlight: 4 },
+    protein: { avg: 118, data: [28, 60, 30, 0, 50, 0, 0], labels: ['B', 'L', 'S', '—', 'D', '—', '—'], highlight: 1 },
+    workouts: { count: 1, streak: 1, dots: [0, 0, 0, 0, 0, 0, 1], labels: WEEK_LABELS },
+  },
+  Weekly: {
+    calories: { avg: 2193, note: 'under goal 6/7 days', data: CALORIE_WEEK, labels: WEEK_LABELS, highlight: 4 },
+    protein: { avg: 138, data: PROTEIN_WEEK, labels: WEEK_LABELS, highlight: 4 },
+    workouts: { count: 4, streak: 4, dots: [1, 1, 1, 1, 0, 1, 0], labels: WEEK_LABELS },
+  },
+  Monthly: {
+    calories: { avg: 2210, note: 'steady', data: [2240, 2180, 2260, 2160], labels: ['W1', 'W2', 'W3', 'W4'], highlight: 2 },
+    protein: { avg: 142, data: [136, 140, 148, 144], labels: ['W1', 'W2', 'W3', 'W4'], highlight: 2 },
+    workouts: { count: 16, streak: 4, dots: [1, 1, 1, 1], labels: ['W1', 'W2', 'W3', 'W4'] },
+  },
+};
+
+// ── Assistant: keyword matcher over the canned answer bank ──────
+// Free-form questions no longer fall through to a single generic deflection — we match
+// on keywords so natural phrasings ("how's my training going?") hit a real answer.
+export const ASSISTANT_FALLBACK = {
+  text: "I can pull from every Forge module to answer that. Right now Health is your most active module — try asking about calories, protein, workouts, weight, spending, or a weekly summary.",
+  sources: ['Forge · All modules'],
+};
+const ANSWER_KEYS = [
+  { q: 'How many calories did I eat this week?', kw: ['calorie', 'ate', 'eat', 'kcal', 'food this week'] },
+  { q: 'How consistent have I been with workouts?', kw: ['workout', 'train', 'consistent', 'gym', 'session', 'streak'] },
+  { q: 'How much did I spend eating out?', kw: ['spend', 'spent', 'money', 'eating out', 'dining', 'budget', 'cost'] },
+  { q: 'Summarize my week', kw: ['summar', 'overview', 'recap', 'how am i doing', 'my week', 'weekly'] },
+];
+export function matchAnswer(query) {
+  const q = (query || '').trim().toLowerCase();
+  if (!q) return null;
+  if (ASSISTANT_ANSWERS[query]) return ASSISTANT_ANSWERS[query];
+  const hit = ANSWER_KEYS.find(a => a.kw.some(k => q.includes(k)));
+  if (hit) return ASSISTANT_ANSWERS[hit.q];
+  return ASSISTANT_FALLBACK;
+}
+// follow-up chips shown after an answer
+export const FOLLOW_UPS = [
+  'How consistent have I been with workouts?',
+  'Summarize my week',
+  'How much did I spend eating out?',
 ];
