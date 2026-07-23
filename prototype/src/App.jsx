@@ -85,6 +85,34 @@ export default function App() {
       ? s.filter(f => f.view !== 'workout-live') : [{ view: 'health', tab: 'modules' }]),
   };
 
+  // Installed PWAs get exactly one browser history entry per session by default, so the
+  // OS back gesture/button has nothing to "go back" to and exits the app instead of
+  // walking our in-memory nav stack. Trap it: push a dummy history entry whenever
+  // something back-able is open, and on popstate close the topmost layer ourselves
+  // (sheet > spotlight > stack frame > tab-to-home) — only a press at the true root
+  // (Home tab, empty stack, nothing open) is left to fall through and actually exit.
+  const backSnapshot = useRef({ stack, spotlightOpen, foodOpen, weightOpen });
+  useEffect(() => { backSnapshot.current = { stack, spotlightOpen, foodOpen, weightOpen }; });
+  useEffect(() => {
+    window.history.replaceState({ forgeRoot: true }, '');
+    window.history.pushState({ forgeTrap: true }, '');
+
+    const onPopState = () => {
+      const { stack, spotlightOpen, foodOpen, weightOpen } = backSnapshot.current;
+      let handled = true;
+      if (spotlightOpen) setSpotlightOpen(false);
+      else if (weightOpen) setWeightOpen(false);
+      else if (foodOpen) setFoodOpen(false);
+      else if (stack.length > 1) nav.back();
+      else if (stack[0].tab !== 'home') nav.tab('home');
+      else handled = false;
+
+      if (handled) window.history.pushState({ forgeTrap: true }, '');
+    };
+    window.addEventListener('popstate', onPopState);
+    return () => window.removeEventListener('popstate', onPopState);
+  }, []);
+
   const workoutApi = {
     toggleSet: (ei, si) => setWorkout(w => { const c = structuredClone(w);
       c.exercises[ei].sets[si].done = !c.exercises[ei].sets[si].done; return c; }),
