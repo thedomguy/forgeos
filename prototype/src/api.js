@@ -1,10 +1,12 @@
 // api.js — thin fetch wrapper for the ForgeOS round-2 REST API.
 //
-// Base URL comes from VITE_API_URL at build time, falling back to production.
-// Every request sends the httpOnly auth cookie (`credentials: 'include'`) and
-// speaks JSON. Non-2xx responses throw an Error carrying the server's `error`
-// message when present, so callers can surface it (inline on login, toast elsewhere).
-const BASE = import.meta.env.VITE_API_URL || 'https://api.domguy.dev';
+// Base URL comes from VITE_API_URL at build time, falling back to the same-origin
+// `/api/v1` path (nginx proxies that path to the API on the VPS, so no CORS or
+// cross-site cookie is needed in production). Every request sends the httpOnly
+// auth cookie (`credentials: 'include'`) and speaks JSON. Non-2xx responses throw
+// an Error carrying the server's `error` message when present, so callers can
+// surface it (inline on login, toast elsewhere).
+const BASE = import.meta.env.VITE_API_URL || '/api/v1';
 
 async function request(method, path, body) {
   const opts = {

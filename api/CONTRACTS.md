@@ -2,7 +2,9 @@
 
 Source of truth for the parallel agents. Do not change these shapes without updating this file.
 
-**Base URL:** `https://api.domguy.dev` (prod) / `http://localhost:3000` (dev).
+**Base URL:** `https://domguy.dev/api/v1` (prod, same-origin path proxied by nginx to the
+API on `127.0.0.1:3001`) / `http://localhost:3001/api/v1` (dev). Routes below are shown
+without the `/api/v1` prefix — it's mounted once in `app.ts`, not per-router.
 **Auth:** JWT in an httpOnly cookie `forge_token`, set by `/auth/*`. All non-`/auth` routes
 require it (`authRequired` sets `req.user = { id, email, name, tz }`). Frontend must send
 `credentials: 'include'` on every request.

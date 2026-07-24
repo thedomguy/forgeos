@@ -22,16 +22,20 @@ export function createApp() {
 
   app.get('/health', (_req, res) => res.json({ ok: true }));
 
+  const v1 = express.Router();
+
   // public
-  app.use('/auth', authRouter);
+  v1.use('/auth', authRouter);
 
   // everything below requires a valid session
-  app.use(authRequired);
-  app.use('/state', stateRouter);
-  app.use('/meals', mealsRouter);
-  app.use('/settings', settingsRouter);
-  app.use('/timeline', timelineRouter);
-  app.use('/', logRouter); // /weight, /water, /walks, /workouts
+  v1.use(authRequired);
+  v1.use('/state', stateRouter);
+  v1.use('/meals', mealsRouter);
+  v1.use('/settings', settingsRouter);
+  v1.use('/timeline', timelineRouter);
+  v1.use('/', logRouter); // /weight, /water, /walks, /workouts
+
+  app.use('/api/v1', v1);
 
   // 404
   app.use((_req, res) => res.status(404).json({ error: 'Not found' }));
