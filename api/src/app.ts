@@ -35,7 +35,7 @@ export function createApp() {
   v1.use('/timeline', timelineRouter);
   v1.use('/', logRouter); // /weight, /water, /walks, /workouts
 
-  app.use('/api/v1', v1);
+  app.use('/fg/v1', v1);
 
   // 404
   app.use((_req, res) => res.status(404).json({ error: 'Not found' }));

@@ -2,9 +2,12 @@
 
 Source of truth for the parallel agents. Do not change these shapes without updating this file.
 
-**Base URL:** `https://domguy.dev/api/v1` (prod, same-origin path proxied by nginx to the
-API on `127.0.0.1:3001`) / `http://localhost:3001/api/v1` (dev). Routes below are shown
-without the `/api/v1` prefix — it's mounted once in `app.ts`, not per-router.
+**Base URL:** `https://api.domguy.dev/fg/v1` (prod — `fg` is ForgeOS's service prefix on the
+shared `api.domguy.dev` host; other services get their own `/xx/v1` prefix there later,
+same pattern) / `http://localhost:3001/fg/v1` (dev). Routes below are shown without the
+`/fg/v1` prefix — it's mounted once in `app.ts`, not per-router. This is cross-origin from
+the SPA at `domguy.dev`, so CORS (`CORS_ORIGIN`) must match and the auth cookie is
+host-only on `api.domguy.dev`.
 **Auth:** JWT in an httpOnly cookie `forge_token`, set by `/auth/*`. All non-`/auth` routes
 require it (`authRequired` sets `req.user = { id, email, name, tz }`). Frontend must send
 `credentials: 'include'` on every request.
