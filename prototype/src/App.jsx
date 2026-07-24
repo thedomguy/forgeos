@@ -82,6 +82,11 @@ function AppInner() {
     toastTimer.current = setTimeout(() => setToast(null), 2200);
   }, []);
 
+  // surface store-level failures (optimistic action rollbacks) as a toast
+  useEffect(() => {
+    if (store.error) { showToast(store.error); store.clearError(); }
+  }, [store.error, showToast]);
+
   const nav = {
     tab: (view) => { setSpotlightOpen(false); setStack([{ view, tab: TAB_OF[view] || view }]); },
     deep: (arr) => { setSpotlightOpen(false);
@@ -208,8 +213,20 @@ function AppInner() {
 
   return (
     <AppShell theme={theme}>
-      {!store.auth.loggedIn ? (
-        <LoginScreen theme={theme} onLogin={(email) => { store.login(email); showToast('Welcome to Forge'); }} />
+      {store.authStatus === 'loading' || !store.ready ? (
+        <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center',
+          justifyContent: 'center', color: theme.text2, fontFamily: FONT, fontSize: 14 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 14 }}>
+            <div style={{ width: 34, height: 34, borderRadius: '50%',
+              border: `3px solid ${theme.border2}`, borderTopColor: theme.accent.solid,
+              animation: 'forgeSpin .7s linear infinite' }} />
+            Loading your Forge…
+          </div>
+        </div>
+      ) : store.authStatus !== 'in' ? (
+        <LoginScreen theme={theme}
+          onLogin={(email, password) => store.login(email, password).then(() => showToast('Welcome to Forge'))}
+          onSignup={(name, email, password) => store.signup(email, password, name).then(() => showToast('Welcome to Forge'))} />
       ) : (
         <>
           <div key={top.view} className="forge-screen" style={{ position: 'absolute', inset: 0 }}>

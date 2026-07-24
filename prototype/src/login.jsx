@@ -1,9 +1,9 @@
-// login.jsx — simple mock auth gate. Any email + password proceeds; a real backend
-// replaces onLogin next round. Persisted via the store's `auth` slice.
+// login.jsx — real auth gate against the round-2 API. Sign in / sign up hit
+// /auth/* through the store; errors surface inline. Persisted via the httpOnly cookie.
 import { useState } from 'react';
 import { Icon } from './icons.jsx';
 import { Button } from './ui.jsx';
-import { FONT, MONO, ON_ACCENT, STATUS_H, SCREEN_PAD_X } from './theme.jsx';
+import { FONT, MONO, ON_ACCENT, STATUS_H, SCREEN_PAD_X, DANGER } from './theme.jsx';
 
 function Field({ theme, icon, ...rest }) {
   const t = theme;
@@ -17,14 +17,32 @@ function Field({ theme, icon, ...rest }) {
   );
 }
 
-export function LoginScreen({ theme, onLogin }) {
+export function LoginScreen({ theme, onLogin, onSignup }) {
   const t = theme;
   const [mode, setMode] = useState('signin'); // signin | signup
+  const [name, setName] = useState('');
   const [email, setEmail] = useState('alex@forge.os');
   const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const [busy, setBusy] = useState(false);
   const isSignup = mode === 'signup';
 
-  const submit = () => { if (email.trim()) onLogin(email.trim()); };
+  const submit = async () => {
+    if (busy) return;
+    const em = email.trim();
+    if (!em || !password) { setError('Enter your email and password.'); return; }
+    if (isSignup && !name.trim()) { setError('Enter your name.'); return; }
+    setError(''); setBusy(true);
+    try {
+      if (isSignup) await onSignup(name.trim(), em, password);
+      else await onLogin(em, password);
+    } catch (err) {
+      setError(err && err.message ? err.message : 'Something went wrong. Try again.');
+      setBusy(false);
+    }
+  };
+
+  const switchMode = () => { setMode(isSignup ? 'signin' : 'signup'); setError(''); };
 
   return (
     <div style={{ position: 'absolute', inset: 0, overflowY: 'auto', background: t.bg }}>
@@ -44,7 +62,8 @@ export function LoginScreen({ theme, onLogin }) {
 
         {/* form */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 11 }}>
-          {isSignup && <Field theme={t} icon="user" placeholder="Full name" autoComplete="name" />}
+          {isSignup && <Field theme={t} icon="user" placeholder="Full name" autoComplete="name"
+            value={name} onChange={e => setName(e.target.value)} />}
           <Field theme={t} icon="user" placeholder="Email" type="email" autoComplete="email"
             value={email} onChange={e => setEmail(e.target.value)} />
           <Field theme={t} icon="shield" placeholder="Password" type="password"
@@ -53,13 +72,20 @@ export function LoginScreen({ theme, onLogin }) {
             onKeyDown={e => e.key === 'Enter' && submit()} />
 
           {!isSignup && (
-            <button onClick={() => onLogin(email.trim() || 'alex@forge.os')} style={{ alignSelf: 'flex-end',
-              background: 'none', border: 'none', color: t.accent.solid, fontSize: 13, fontWeight: 600,
-              fontFamily: FONT, cursor: 'pointer', padding: '2px 2px' }}>Forgot password?</button>
+            <button onClick={() => setError('Password reset arrives with the full release.')}
+              style={{ alignSelf: 'flex-end', background: 'none', border: 'none', color: t.accent.solid,
+              fontSize: 13, fontWeight: 600, fontFamily: FONT, cursor: 'pointer', padding: '2px 2px' }}>
+              Forgot password?</button>
           )}
 
-          <Button theme={t} onClick={submit} style={{ marginTop: 6 }}>
-            {isSignup ? 'Create account' : 'Sign in'}</Button>
+          {error && (
+            <div role="alert" style={{ fontSize: 13, color: DANGER.text, background: DANGER.tint,
+              border: `1px solid ${DANGER.tint}`, borderRadius: 12, padding: '10px 13px', lineHeight: 1.45 }}>
+              {error}</div>
+          )}
+
+          <Button theme={t} onClick={submit} disabled={busy} style={{ marginTop: 6, opacity: busy ? 0.65 : 1 }}>
+            {busy ? 'Please wait…' : isSignup ? 'Create account' : 'Sign in'}</Button>
         </div>
 
         {/* divider */}
@@ -70,8 +96,8 @@ export function LoginScreen({ theme, onLogin }) {
           <div style={{ flex: 1, height: 1, background: t.border }} />
         </div>
 
-        {/* mock social */}
-        <button onClick={() => onLogin('alex@forge.os')} style={{ display: 'flex', alignItems: 'center',
+        {/* SSO — routes through the same credential submit for this prototype */}
+        <button onClick={submit} disabled={busy} style={{ display: 'flex', alignItems: 'center',
           justifyContent: 'center', gap: 10, width: '100%', padding: '13px', borderRadius: 15, cursor: 'pointer',
           background: t.surface, border: `1px solid ${t.border2}`, color: t.text, fontFamily: FONT,
           fontSize: 15, fontWeight: 600 }}>
@@ -80,7 +106,7 @@ export function LoginScreen({ theme, onLogin }) {
         {/* toggle */}
         <div style={{ textAlign: 'center', marginTop: 26, fontSize: 13.5, color: t.text2 }}>
           {isSignup ? 'Already have an account?' : "Don't have an account?"}{' '}
-          <button onClick={() => setMode(isSignup ? 'signin' : 'signup')} style={{ background: 'none',
+          <button onClick={switchMode} style={{ background: 'none',
             border: 'none', color: t.accent.solid, fontSize: 13.5, fontWeight: 650, fontFamily: FONT,
             cursor: 'pointer' }}>{isSignup ? 'Sign in' : 'Create one'}</button>
         </div>
