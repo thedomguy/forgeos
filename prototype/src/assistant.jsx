@@ -1,9 +1,30 @@
 // assistant.jsx — Forge AI Assistant (cross-module retrieval, inline data cards).
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { Icon } from './icons.jsx';
-import { IconBtn, Tag } from './ui.jsx';
+import { IconBtn, Tag, Chip } from './ui.jsx';
 import { FONT, MONO, HUE, STATUS_H, ON_ACCENT, SCREEN_PAD_X } from './theme.jsx';
-import { MODULES, SUGGESTIONS, ASSISTANT_ANSWERS } from './data.js';
+import { MODULES, SUGGESTIONS, ASSISTANT_ANSWERS, matchAnswer, FOLLOW_UPS } from './data.js';
+import { useAssistant, useStore } from './store.jsx';
+
+// derived header stats — how many modules feed the assistant, and how many
+// distinct sources it can cite (from the answer bank), so the copy stays honest.
+const INSTALLED_COUNT = MODULES.filter(m => m.installed).length;
+const SOURCE_COUNT = new Set(
+  Object.values(ASSISTANT_ANSWERS).flatMap(a => a.sources || [])
+).size;
+
+// map a cited source label to a real destination (or null if it has none)
+function sourceTarget(src, nav) {
+  const s = (src || '').toLowerCase();
+  if (s.includes('nutrition')) return () => nav.deep(['health', 'nutrition']);
+  if (s.includes('workout')) return () => nav.deep(['health', 'workouts']);
+  if (s.includes('activit')) return () => nav.deep(['health', 'history']);
+  if (s.includes('body') || s.includes('weight')) return () => nav.deep(['health', 'body']);
+  if (s.includes('finance')) return () => nav.toast('Finance module coming soon');
+  if (s.includes('learning')) return () => nav.toast('Learning module coming soon');
+  if (s.startsWith('health')) return () => nav.deep(['health']);
+  return null;
+}
 
 function ChartCard({ chart, theme }) {
   const t = theme;
@@ -72,13 +93,32 @@ function SummaryGrid({ summary, theme }) {
   );
 }
 
-function Sources({ sources, theme }) {
+function Sources({ sources, theme, nav }) {
   const t = theme;
   return (
     <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 12 }}>
       <span style={{ fontSize: 11, color: t.text3, alignSelf: 'center' }}>Sources</span>
-      {sources.map(s => <Tag key={s} theme={t} color={t.text2} style={{ textTransform: 'none', letterSpacing: 0 }}>
-        <Icon name="layers" size={11} />{s}</Tag>)}
+      {sources.map(s => {
+        const go = sourceTarget(s, nav);
+        return (
+          <button key={s} onClick={go || undefined} disabled={!go} style={{ background: 'none',
+            border: 'none', padding: 0, cursor: go ? 'pointer' : 'default' }}>
+            <Tag theme={t} color={t.text2} style={{ textTransform: 'none', letterSpacing: 0 }}>
+              <Icon name="layers" size={11} />{s}{go && <Icon name="chevronRight" size={11} />}</Tag>
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+function FollowUps({ onPick, theme }) {
+  return (
+    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 14 }}>
+      {FOLLOW_UPS.map(f => (
+        <Chip key={f} theme={theme} onClick={() => onPick(f)}
+          style={{ fontSize: 12.5, padding: '7px 12px', fontWeight: 500 }}>{f}</Chip>
+      ))}
     </div>
   );
 }
@@ -97,10 +137,18 @@ function TypingDots({ theme }) {
 
 export function AssistantScreen({ theme, nav, seed, onSeedUsed }) {
   const t = theme;
-  const [messages, setMessages] = useState([]);
+  const { messages } = useAssistant();
+  const { setAssistantMessages } = useStore();
   const [thinking, setThinking] = useState(false);
   const [draft, setDraft] = useState('');
+  const [listening, setListening] = useState(false);
   const scrollRef = useRef(null);
+  const recRef = useRef(null);
+  // mirror latest messages + a token so delayed answers append correctly and
+  // can be cancelled by a refresh (chat lives in the store, so it survives tab switches)
+  const msgsRef = useRef(messages);
+  const askToken = useRef(0);
+  useEffect(() => { msgsRef.current = messages; }, [messages]);
 
   const scrollDown = () => requestAnimationFrame(() => {
     if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
@@ -110,24 +158,49 @@ export function AssistantScreen({ theme, nav, seed, onSeedUsed }) {
     const q = (text || '').trim();
     if (!q) return;
     setDraft('');
-    setMessages(m => [...m, { role: 'user', text: q }]);
+    const withUser = [...msgsRef.current, { role: 'user', text: q }];
+    msgsRef.current = withUser;
+    setAssistantMessages(withUser);
     setThinking(true);
     scrollDown();
-    const ans = ASSISTANT_ANSWERS[q] || {
-      text: "I can pull from every Forge module to answer that. Right now Health is your most active module — try asking about calories, workouts, weight, or a weekly summary.",
-      sources: ['Forge · All modules'],
-    };
+    const ans = matchAnswer(q);
+    const myToken = ++askToken.current;
     setTimeout(() => {
+      if (askToken.current !== myToken) return; // cancelled by refresh
       setThinking(false);
-      setMessages(m => [...m, { role: 'assistant', ...ans, animate: true }]);
+      const next = [...msgsRef.current, { role: 'assistant', ...ans, animate: true }];
+      msgsRef.current = next;
+      setAssistantMessages(next);
       scrollDown();
     }, 950);
-  }, []);
+  }, [setAssistantMessages]);
+
+  const clearChat = () => { askToken.current++; setThinking(false); setAssistantMessages([]); };
+
+  const toggleVoice = () => {
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SR) { nav.toast('Voice input is not supported here'); return; }
+    if (listening && recRef.current) { recRef.current.stop(); return; }
+    let rec;
+    try { rec = new SR(); } catch { nav.toast('Voice input unavailable'); return; }
+    rec.lang = 'en-US'; rec.interimResults = true; rec.maxAlternatives = 1;
+    rec.onresult = (e) => {
+      const txt = Array.from(e.results).map(r => r[0].transcript).join(' ').trim();
+      setDraft(txt);
+    };
+    rec.onerror = () => { setListening(false); nav.toast('Voice input unavailable'); };
+    rec.onend = () => setListening(false);
+    recRef.current = rec;
+    try { rec.start(); setListening(true); }
+    catch { setListening(false); nav.toast('Voice input unavailable'); }
+  };
+  useEffect(() => () => { try { recRef.current && recRef.current.stop(); } catch {} }, []);
 
   useEffect(() => { if (seed) { ask(seed); onSeedUsed && onSeedUsed(); } }, [seed]);
   useEffect(() => { scrollDown(); }, [messages, thinking]);
 
   const empty = messages.length === 0 && !thinking;
+  const lastIdx = messages.length - 1;
 
   return (
     <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column' }}>
@@ -141,10 +214,10 @@ export function AssistantScreen({ theme, nav, seed, onSeedUsed }) {
           <div style={{ fontSize: 18, fontWeight: 680, letterSpacing: -0.3 }}>Forge Assistant</div>
           <div style={{ fontSize: 12, color: t.text2, display: 'flex', alignItems: 'center', gap: 5 }}>
             <span style={{ width: 6, height: 6, borderRadius: 6, background: HUE.health }} />
-            Connected to {MODULES.filter(m => m.installed).length} module · 9 sources</div>
+            Connected to {INSTALLED_COUNT} module{INSTALLED_COUNT === 1 ? '' : 's'} · {SOURCE_COUNT} sources</div>
         </div>
         {messages.length > 0 && <IconBtn name="refresh" theme={t} size={38} iconSize={18}
-          onClick={() => setMessages([])} />}
+          onClick={clearChat} />}
       </div>
 
       {/* thread */}
@@ -191,7 +264,9 @@ export function AssistantScreen({ theme, nav, seed, onSeedUsed }) {
                 <div style={{ fontSize: 14.5, lineHeight: 1.55, color: t.text }}>{m.text}</div>
                 {m.chart && <ChartCard chart={m.chart} theme={t} />}
                 {m.summary && <SummaryGrid summary={m.summary} theme={t} />}
-                {m.sources && <Sources sources={m.sources} theme={t} />}
+                {m.sources && <Sources sources={m.sources} theme={t} nav={nav} />}
+                {/* follow-up chips after the latest answer keep the conversation going */}
+                {i === lastIdx && !thinking && <FollowUps onPick={ask} theme={t} />}
               </div>
             </div>
           )
@@ -215,12 +290,13 @@ export function AssistantScreen({ theme, nav, seed, onSeedUsed }) {
         background: t.navBg, backdropFilter: 'blur(20px)' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
           <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 9, padding: `6px 6px 6px ${SCREEN_PAD_X}px`,
-            background: t.surface, borderRadius: 22, border: `1px solid ${t.border2}` }}>
+            background: t.surface, borderRadius: 22, border: `1px solid ${listening ? HUE.cal + '88' : t.border2}` }}>
             <input value={draft} onChange={e => setDraft(e.target.value)}
               onKeyDown={e => e.key === 'Enter' && ask(draft)}
-              placeholder="Ask across your modules…" style={{ flex: 1, background: 'none', border: 'none',
+              placeholder={listening ? 'Listening…' : 'Ask across your modules…'} style={{ flex: 1, background: 'none', border: 'none',
               outline: 'none', color: t.text, fontSize: 15, fontFamily: FONT }} />
-            <IconBtn name="mic" theme={t} size={34} iconSize={18} onClick={() => nav.toast('Voice input')} />
+            <IconBtn name="mic" theme={t} size={34} iconSize={18} active={listening} accent={HUE.cal}
+              onClick={toggleVoice} />
           </div>
           <button onClick={() => ask(draft)} disabled={!draft.trim()} style={{ width: 46, height: 46, borderRadius: 16,
             border: 'none', cursor: draft.trim() ? 'pointer' : 'default', flexShrink: 0, color: ON_ACCENT,
