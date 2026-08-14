@@ -56,9 +56,9 @@ Description=Forge OS API
 After=network.target postgresql.service
 
 [Service]
-WorkingDirectory=/root/workspace/forgeos/api
+WorkingDirectory=/root/workspace/forgeos-main/api
 ExecStart=/root/.local/share/mise/installs/node/24.18.0/bin/node dist/index.js
-EnvironmentFile=/root/workspace/forgeos/api/.env
+EnvironmentFile=/root/workspace/forgeos-main/api/.env
 Restart=on-failure
 User=root
 
@@ -66,8 +66,12 @@ User=root
 WantedBy=multi-user.target
 ```
 Runs as `root` (not `www-data`) because the repo lives under `/root`, which is mode `700` and
-unreadable by other users. `npm run build` first, then `systemctl daemon-reload && systemctl
-enable --now forge-api`. Redeploy = `npm run build && systemctl restart forge-api`.
+unreadable by other users. `WorkingDirectory` points at `/root/workspace/forgeos-main` — the
+dedicated `main`-branch git worktree (see repo-root `deploy.sh`), never a feature-branch
+checkout. `npm run build` first, then `systemctl daemon-reload && systemctl enable --now
+forge-api`. Redeploy from the main worktree = `npm run deploy` (equivalent to `npm run build &&
+systemctl restart forge-api`, but refuses to run off `main`) or, for a full API+frontend deploy,
+`../deploy.sh` from the repo root.
 
 ## nginx
 Port 3000 was already taken by an unrelated legacy service, so forge-api runs on **3001**, and
