@@ -22,6 +22,13 @@ for built asset URLs to resolve correctly. Update it if the deploy path ever cha
 after any change you want visible on the live URL. There is no separate running dev
 process on this VPS — deploy is build-and-copy only, nothing auto-publishes.
 
+**Deploys must run from `main`, in the dedicated main worktree** at
+`/root/workspace/forgeos-main` — `npm run deploy` (here and in `api/`) shells out to
+`../scripts/require-main-branch.sh` first and refuses to run on any other branch. For a
+full API + frontend deploy in one step, run `./deploy.sh` from that worktree's repo
+root. Feature work happens in the regular checkout (e.g. `/root/workspace/forgeos`) on
+whatever branch; only the main worktree ever ships to prod.
+
 ## PWA
 
 Installable + offline via `vite-plugin-pwa` (config in `vite.config.js`), source icons
