@@ -1,9 +1,13 @@
 // screens.jsx — OS shell screens: Home, Modules, Timeline, Profile.
-import { Fragment, useState } from 'react';
+import { Fragment, useState, useEffect } from 'react';
 import { Icon } from './icons.jsx';
-import { Screen, Card, Chip, IconBtn, Ring, Tag, Avatar } from './ui.jsx';
+import { Screen, Card, Chip, IconBtn, Ring, Tag, Avatar, Sheet, Button } from './ui.jsx';
 import { FONT, MONO, HUE, ACCENTS, ON_ACCENT, Z, SCREEN_PAD_X } from './theme.jsx';
-import { MODULES, TODAY, QUICK_ACTIONS, INSIGHTS, TIMELINE } from './data.js';
+import { MODULES, QUICK_ACTIONS } from './data.js';
+import { useToday, useTimeline, useInsights, useStore, useSettings, useAuth } from './store.jsx';
+import { ProfileSheets } from './profilesheets.jsx';
+
+const moduleName = (id) => (MODULES.find(m => m.id === id) || {}).name || id;
 
 // shared big header with optional spotlight/command button
 export function ScreenHeader({ theme, title, sub, nav, trailing, onCommand = true }) {
@@ -44,11 +48,120 @@ export function SectionLabel({ theme, children, action, onAction }) {
 
 const WEEKDAY_DATE = new Date().toLocaleDateString(undefined, { weekday: 'long', month: 'short', day: 'numeric' });
 
+// ── shared: timeline event detail sheet (used by Home + Timeline) ─
+function EventDetailSheet({ event, theme, onClose, nav }) {
+  const t = theme;
+  return (
+    <Sheet open={!!event} onClose={onClose} theme={t}>
+      {event && (
+        <div style={{ padding: '8px 20px 34px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '12px 0 16px' }}>
+            <div style={{ width: 52, height: 52, borderRadius: 15, display: 'flex', alignItems: 'center',
+              justifyContent: 'center', color: event.hue, background: event.hue + '1c' }}>
+              <Icon name={event.icon} size={26} /></div>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <Tag theme={t} color={event.hue}>{event.tag}</Tag>
+              <div style={{ fontSize: 18, fontWeight: 680, marginTop: 7 }}>{event.title}</div>
+            </div>
+          </div>
+          <div style={{ fontSize: 14.5, color: t.text2, lineHeight: 1.5 }}>{event.sub}</div>
+          <div style={{ display: 'flex', gap: 10, marginTop: 18 }}>
+            {[['Time', event.t], ['Module', moduleName(event.module)]].map(([l, v]) => (
+              <div key={l} style={{ flex: 1, padding: '12px 14px', borderRadius: 14, background: t.surface2,
+                border: `1px solid ${t.border}` }}>
+                <div style={{ fontSize: 11.5, color: t.text3 }}>{l}</div>
+                <div style={{ fontFamily: MONO, fontSize: 15, fontWeight: 600, marginTop: 3 }}>{v}</div>
+              </div>
+            ))}
+          </div>
+          <div style={{ marginTop: 18 }}>
+            <Button theme={t} kind="ghost" icon="timeline"
+              onClick={() => { onClose(); nav.tab('timeline'); }}>View in Timeline</Button>
+          </div>
+        </div>
+      )}
+    </Sheet>
+  );
+}
+
+// ── shared: simulated module install flow ────────────────────────
+function InstallSheet({ module, theme, onClose, nav }) {
+  const t = theme;
+  const [phase, setPhase] = useState('install'); // 'install' | 'done'
+  const [pct, setPct] = useState(0);
+  useEffect(() => {
+    if (!module) return;
+    setPhase('install'); setPct(0);
+    let p = 0;
+    const iv = setInterval(() => {
+      p += Math.random() * 22 + 9;
+      if (p >= 100) { p = 100; setPct(100); clearInterval(iv); setTimeout(() => setPhase('done'), 380); }
+      else setPct(p);
+    }, 300);
+    return () => clearInterval(iv);
+  }, [module]);
+
+  return (
+    <Sheet open={!!module} onClose={onClose} theme={t}>
+      {module && (
+        <div style={{ padding: '10px 22px 34px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>
+            <div style={{ width: 66, height: 66, borderRadius: 20, display: 'flex', alignItems: 'center',
+              justifyContent: 'center', color: ON_ACCENT, marginBottom: 16,
+              background: `linear-gradient(135deg, ${module.hue}, ${module.hue}aa)`,
+              boxShadow: `0 10px 26px ${module.hue}55` }}>
+              <Icon name={phase === 'done' ? 'check' : module.icon} size={32}
+                strokeWidth={phase === 'done' ? 2.6 : 2} /></div>
+            <div style={{ fontSize: 20, fontWeight: 700 }}>{module.name}</div>
+            <div style={{ fontSize: 13.5, color: t.text2, marginTop: 4 }}>{module.tagline}</div>
+          </div>
+
+          {phase === 'install' ? (
+            <div style={{ marginTop: 26 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
+                <span style={{ fontSize: 13, color: t.text2 }}>
+                  {pct < 40 ? 'Preparing module…' : pct < 82 ? 'Installing…' : 'Finishing up…'}</span>
+                <span style={{ fontFamily: MONO, fontSize: 13, color: module.hue }}>{Math.round(pct)}%</span>
+              </div>
+              <div style={{ height: 8, borderRadius: 100, background: t.track, overflow: 'hidden' }}>
+                <div style={{ width: pct + '%', height: '100%', borderRadius: 100, background: module.hue,
+                  transition: 'width .3s' }} />
+              </div>
+            </div>
+          ) : (
+            <div style={{ marginTop: 24 }}>
+              <div style={{ padding: 16, borderRadius: 16, background: t.surface2, border: `1px solid ${t.border}`,
+                textAlign: 'center' }}>
+                <div style={{ fontSize: 15.5, fontWeight: 650, marginBottom: 5 }}>Coming soon — you're on the list</div>
+                <div style={{ fontSize: 13, color: t.text2, lineHeight: 1.5 }}>
+                  {module.name} isn't live yet. We'll notify you the moment it plugs into your timeline,
+                  assistant, and dashboard.</div>
+              </div>
+              <div style={{ marginTop: 16 }}>
+                <Button theme={t} onClick={() => { onClose(); nav.toast(`We'll let you know when ${module.name} is ready`); }}>
+                  Notify me</Button>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+    </Sheet>
+  );
+}
+
 // ── HOME ────────────────────────────────────────────────────────
 export function HomeScreen({ theme, nav }) {
   const t = theme;
-  const inPct = Math.round((TODAY.caloriesIn / TODAY.caloriesGoal) * 100);
-  const net = TODAY.caloriesIn - TODAY.caloriesOut;
+  const today = useToday();
+  const timeline = useTimeline();
+  const insights = useInsights();
+  const [detail, setDetail] = useState(null);
+
+  const inPct = Math.round((today.caloriesIn / today.caloriesGoal) * 100);
+  const net = today.caloriesIn - today.caloriesOut;
+  const insight = insights[2] || insights[0] || {};
+  const recent = timeline.slice(0, 3);
+
   return (
     <Screen theme={t}>
       <ScreenHeader theme={t} nav={nav} sub={WEEKDAY_DATE} title="Good evening, Alex"
@@ -67,15 +180,15 @@ export function HomeScreen({ theme, nav }) {
                 <span style={{ fontSize: 14, color: t.text2, fontWeight: 500 }}>net kcal</span>
               </div>
             </div>
-            <Ring theme={t} value={TODAY.caloriesIn} max={TODAY.caloriesGoal} size={84} stroke={9}
+            <Ring theme={t} value={today.caloriesIn} max={today.caloriesGoal} size={84} stroke={9}
               gradient={[HUE.cal, HUE.calLight]}>
               <span style={{ fontFamily: MONO, fontSize: 19, fontWeight: 600 }}>{inPct}%</span>
               <span style={{ fontSize: 10, color: t.text3, marginTop: 1 }}>of goal</span>
             </Ring>
           </div>
           <div style={{ display: 'flex', gap: 18 }}>
-            {[['Eaten', TODAY.caloriesIn, HUE.cal], ['Burned', TODAY.caloriesOut, HUE.burn],
-              ['Remaining', TODAY.caloriesGoal - TODAY.caloriesIn, t.text2]].map(([l, v, c]) => (
+            {[['Eaten', today.caloriesIn, HUE.cal], ['Burned', today.caloriesOut, HUE.burn],
+              ['Remaining', Math.max(0, today.caloriesGoal - today.caloriesIn), t.text2]].map(([l, v, c]) => (
               <div key={l} style={{ flex: 1 }}>
                 <div style={{ fontSize: 11.5, color: t.text3, marginBottom: 3 }}>{l}</div>
                 <div style={{ fontFamily: MONO, fontSize: 17, fontWeight: 600, color: c }}>{v.toLocaleString()}</div>
@@ -103,7 +216,7 @@ export function HomeScreen({ theme, nav }) {
       <SectionLabel theme={t} action="All modules" onAction={() => nav.tab('modules')}>Modules</SectionLabel>
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, padding: `0 ${SCREEN_PAD_X}px` }}>
         {MODULES.slice(0, 4).map(m => (
-          <Card key={m.id} theme={t} onClick={() => m.installed ? nav.deep(['health']) : nav.toast(m.name + ' coming soon')}
+          <Card key={m.id} theme={t} onClick={() => m.installed ? nav.deep(['health']) : nav.tab('modules')}
             style={{ padding: 15, opacity: m.installed ? 1 : 0.62 }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
               <div style={{ width: 36, height: 36, borderRadius: 11, display: 'flex', alignItems: 'center',
@@ -131,8 +244,8 @@ export function HomeScreen({ theme, nav }) {
               background: `linear-gradient(135deg, ${t.accent.g1}, ${t.accent.g2})` }}>
               <Icon name="spark" size={20} /></div>
             <div>
-              <div style={{ fontWeight: 620, fontSize: 14.5, marginBottom: 3 }}>{INSIGHTS[2].title}</div>
-              <div style={{ fontSize: 13, color: t.text2, lineHeight: 1.45 }}>{INSIGHTS[2].body}</div>
+              <div style={{ fontWeight: 620, fontSize: 14.5, marginBottom: 3 }}>{insight.title}</div>
+              <div style={{ fontSize: 13, color: t.text2, lineHeight: 1.45 }}>{insight.body}</div>
             </div>
           </div>
         </Card>
@@ -142,8 +255,9 @@ export function HomeScreen({ theme, nav }) {
       <SectionLabel theme={t} action="Timeline" onAction={() => nav.tab('timeline')}>Recent Activity</SectionLabel>
       <div style={{ padding: `0 ${SCREEN_PAD_X}px` }}>
         <Card theme={t} style={{ padding: '4px 0' }}>
-          {TIMELINE.slice(0, 3).map((e, i) => (
-            <div key={e.id} style={{ display: 'flex', alignItems: 'center', gap: 13, padding: `12px ${SCREEN_PAD_X}px`,
+          {recent.map((e, i) => (
+            <div key={e.id} onClick={() => setDetail(e)} style={{ display: 'flex', alignItems: 'center', gap: 13,
+              padding: `12px ${SCREEN_PAD_X}px`, cursor: 'pointer',
               borderTop: i ? `1px solid ${t.border}` : 'none' }}>
               <div style={{ width: 34, height: 34, borderRadius: 10, display: 'flex', alignItems: 'center',
                 justifyContent: 'center', color: e.hue, background: e.hue + '1c' }}><Icon name={e.icon} size={17} /></div>
@@ -157,6 +271,8 @@ export function HomeScreen({ theme, nav }) {
           ))}
         </Card>
       </div>
+
+      <EventDetailSheet event={detail} theme={t} onClose={() => setDetail(null)} nav={nav} />
     </Screen>
   );
 }
@@ -164,6 +280,7 @@ export function HomeScreen({ theme, nav }) {
 // ── MODULES ─────────────────────────────────────────────────────
 export function ModulesScreen({ theme, nav }) {
   const t = theme;
+  const [install, setInstall] = useState(null);
   const installed = MODULES.filter(m => m.installed);
   const future = MODULES.filter(m => !m.installed);
   return (
@@ -191,7 +308,7 @@ export function ModulesScreen({ theme, nav }) {
       <SectionLabel theme={t}>Available to Add</SectionLabel>
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, padding: `0 ${SCREEN_PAD_X}px` }}>
         {future.map(m => (
-          <Card key={m.id} theme={t} onClick={() => nav.toast(m.name + ' coming soon')} style={{ padding: 15 }}>
+          <Card key={m.id} theme={t} onClick={() => setInstall(m)} style={{ padding: 15 }}>
             <div style={{ width: 40, height: 40, borderRadius: 12, display: 'flex', alignItems: 'center',
               justifyContent: 'center', color: m.hue, background: m.hue + '18', marginBottom: 12 }}>
               <Icon name={m.icon} size={21} /></div>
@@ -207,6 +324,8 @@ export function ModulesScreen({ theme, nav }) {
         <span style={{ fontSize: 12.5, color: t.text3, lineHeight: 1.5 }}>
           Forge is modular by design — every new module plugs into the same timeline, assistant, and dashboard.</span>
       </div>
+
+      <InstallSheet module={install} theme={t} onClose={() => setInstall(null)} nav={nav} />
     </Screen>
   );
 }
@@ -215,42 +334,73 @@ export function ModulesScreen({ theme, nav }) {
 export function TimelineScreen({ theme, nav }) {
   const t = theme;
   const [filter, setFilter] = useState('all');
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [query, setQuery] = useState('');
+  const [detail, setDetail] = useState(null);
   const filters = [
     { id: 'all', label: 'All' }, { id: 'health', label: 'Health' },
     { id: 'finance', label: 'Finance' }, { id: 'learning', label: 'Learning' },
   ];
-  const items = filter === 'all' ? TIMELINE : TIMELINE.filter(e => e.module === filter);
+  const all = useTimeline(filter);
+  const q = query.trim().toLowerCase();
+  const items = q ? all.filter(e => `${e.title} ${e.sub} ${e.tag}`.toLowerCase().includes(q)) : all;
+
   return (
     <Screen theme={t}>
       <ScreenHeader theme={t} nav={nav} sub={WEEKDAY_DATE} title="Timeline"
-        trailing={<IconBtn name="search" theme={t} size={42} />} />
+        trailing={<IconBtn name={searchOpen ? 'close' : 'search'} theme={t} size={42} active={searchOpen}
+          onClick={() => { setSearchOpen(o => { if (o) setQuery(''); return !o; }); }} />} />
+
+      {searchOpen && (
+        <div style={{ padding: `0 ${SCREEN_PAD_X}px 10px` }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: `11px ${SCREEN_PAD_X}px`,
+            background: t.surface2, borderRadius: 14, border: `1px solid ${t.border2}` }}>
+            <Icon name="search" size={18} style={{ color: t.text3 }} />
+            <input autoFocus value={query} onChange={e => setQuery(e.target.value)}
+              placeholder="Search your timeline…" style={{ flex: 1, background: 'none', border: 'none',
+              outline: 'none', color: t.text, fontSize: 15, fontFamily: FONT }} />
+            {query && <button onClick={() => setQuery('')} style={{ background: 'none', border: 'none',
+              cursor: 'pointer', color: t.text3, display: 'flex' }}><Icon name="close" size={16} /></button>}
+          </div>
+        </div>
+      )}
+
       <div style={{ display: 'flex', gap: 8, padding: `0 ${SCREEN_PAD_X}px 6px`, overflowX: 'auto' }}>
         {filters.map(f => <Chip key={f.id} theme={t} active={filter === f.id}
           onClick={() => setFilter(f.id)}>{f.label}</Chip>)}
       </div>
+
       <div style={{ padding: `14px ${SCREEN_PAD_X}px 0` }}>
-        <div style={{ position: 'relative', paddingLeft: 38 }}>
-          {/* vertical line */}
-          <div style={{ position: 'absolute', left: 17, top: 6, bottom: 6, width: 2,
-            background: t.border2 }} />
-          {items.map((e) => (
-            <div key={e.id} style={{ position: 'relative', marginBottom: 14 }}>
-              <div style={{ position: 'absolute', left: -38, top: 6, width: 36, height: 36, borderRadius: 11,
-                display: 'flex', alignItems: 'center', justifyContent: 'center', color: e.hue,
-                background: e.hue + '1c', border: `3px solid ${t.bg}`, zIndex: Z.base }}>
-                <Icon name={e.icon} size={17} /></div>
-              <Card theme={t} accent={e.accentRow ? e.hue : null} style={{ padding: '12px 14px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <Tag theme={t} color={e.hue}>{e.tag}</Tag>
-                  <span style={{ fontFamily: MONO, fontSize: 11.5, color: t.text3 }}>{e.t}</span>
-                </div>
-                <div style={{ fontSize: 14.5, fontWeight: 600, marginTop: 7 }}>{e.title}</div>
-                <div style={{ fontSize: 13, color: t.text2, marginTop: 2 }}>{e.sub}</div>
-              </Card>
-            </div>
-          ))}
-        </div>
+        {items.length === 0 ? (
+          <div style={{ textAlign: 'center', color: t.text3, padding: '36px 0', fontSize: 14 }}>
+            {q ? 'No matching events' : 'No activity yet'}</div>
+        ) : (
+          <div style={{ position: 'relative', paddingLeft: 38 }}>
+            {/* vertical line */}
+            <div style={{ position: 'absolute', left: 17, top: 6, bottom: 6, width: 2,
+              background: t.border2 }} />
+            {items.map((e) => (
+              <div key={e.id} style={{ position: 'relative', marginBottom: 14 }}>
+                <div style={{ position: 'absolute', left: -38, top: 6, width: 36, height: 36, borderRadius: 11,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', color: e.hue,
+                  background: e.hue + '1c', border: `3px solid ${t.bg}`, zIndex: Z.base }}>
+                  <Icon name={e.icon} size={17} /></div>
+                <Card theme={t} accent={e.accentRow ? e.hue : null} onClick={() => setDetail(e)}
+                  style={{ padding: '12px 14px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <Tag theme={t} color={e.hue}>{e.tag}</Tag>
+                    <span style={{ fontFamily: MONO, fontSize: 11.5, color: t.text3 }}>{e.t}</span>
+                  </div>
+                  <div style={{ fontSize: 14.5, fontWeight: 600, marginTop: 7 }}>{e.title}</div>
+                  <div style={{ fontSize: 13, color: t.text2, marginTop: 2 }}>{e.sub}</div>
+                </Card>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
+
+      <EventDetailSheet event={detail} theme={t} onClose={() => setDetail(null)} nav={nav} />
     </Screen>
   );
 }
@@ -258,30 +408,45 @@ export function TimelineScreen({ theme, nav }) {
 // ── PROFILE ─────────────────────────────────────────────────────
 export function ProfileScreen({ theme, nav, dark, setDark, accentKey, setAccentKey }) {
   const t = theme;
+  const store = useStore();
+  const { goals, preferences, notifications } = useSettings();
+  const auth = useAuth();
+  const [sheet, setSheet] = useState(null);
+
+  const displayName = preferences.name || auth.name || 'Alex Morgan';
+  const displayEmail = preferences.email || auth.email || 'alex@forge.os';
+  const notifOn = Object.values(notifications).filter(Boolean).length;
+
   const groups = [
     { label: 'Account', rows: [
-      { icon: 'user', c: t.accent.solid, name: 'Personal Info', detail: 'Alex Morgan' },
-      { icon: 'target', c: HUE.health, name: 'Goals', detail: '72 kg · 160g protein' },
-      { icon: 'sliders', c: HUE.water, name: 'Preferences', detail: 'Metric · INR' },
+      { key: 'personal', icon: 'user', c: t.accent.solid, name: 'Personal Info', detail: displayName },
+      { key: 'goals', icon: 'target', c: HUE.health, name: 'Goals',
+        detail: `${goals.weight} kg · ${goals.protein}g protein` },
+      { key: 'preferences', icon: 'sliders', c: HUE.water, name: 'Preferences',
+        detail: `${preferences.units} · ${preferences.currency}` },
     ]},
     { label: 'Forge', rows: [
-      { icon: 'spark', c: t.accent.solid, name: 'AI Preferences', detail: 'Proactive' },
-      { icon: 'link', c: HUE.travel, name: 'Connected Services', detail: '3 active' },
-      { icon: 'bell', c: HUE.finance, name: 'Notifications' },
-      { icon: 'shield', c: HUE.health, name: 'Privacy & Data' },
+      { key: 'ai', icon: 'spark', c: t.accent.solid, name: 'AI Preferences',
+        detail: notifications.insights ? 'Proactive' : 'Manual' },
+      { key: 'services', icon: 'link', c: HUE.travel, name: 'Connected Services', detail: '3 active' },
+      { key: 'notifications', icon: 'bell', c: HUE.finance, name: 'Notifications', detail: `${notifOn} on` },
+      { key: 'privacy', icon: 'shield', c: HUE.health, name: 'Privacy & Data' },
     ]},
   ];
+
   return (
     <Screen theme={t}>
       <ScreenHeader theme={t} nav={nav} sub="Your account" title="Profile" onCommand={false}
-        trailing={<IconBtn name="settings" theme={t} size={42} />} />
+        trailing={<IconBtn name="settings" theme={t} size={42} onClick={() => setSheet('preferences')} />} />
       {/* identity card */}
       <div style={{ padding: `0 ${SCREEN_PAD_X}px` }}>
         <Card theme={t} elevated style={{ padding: 20, display: 'flex', alignItems: 'center', gap: 16 }}>
           <Avatar theme={t} size={60} ring />
-          <div style={{ flex: 1 }}>
-            <div style={{ fontSize: 19, fontWeight: 700 }}>Alex Morgan</div>
-            <div style={{ fontSize: 13, color: t.text2, marginTop: 2 }}>alex@forge.os</div>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ fontSize: 19, fontWeight: 700, overflow: 'hidden', textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap' }}>{displayName}</div>
+            <div style={{ fontSize: 13, color: t.text2, marginTop: 2, overflow: 'hidden',
+              textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{displayEmail}</div>
             <div style={{ display: 'flex', gap: 6, marginTop: 9 }}>
               <Tag theme={t} color={t.accent.solid}>Forge Pro</Tag>
               <Tag theme={t} color={HUE.cal}>148-day streak</Tag>
@@ -337,7 +502,7 @@ export function ProfileScreen({ theme, nav, dark, setDark, accentKey, setAccentK
           <div style={{ padding: `0 ${SCREEN_PAD_X}px` }}>
             <Card theme={t} style={{ padding: '4px 0' }}>
               {g.rows.map((r, i) => (
-                <div key={r.name} onClick={() => nav.toast(r.name)} style={{ display: 'flex', alignItems: 'center',
+                <div key={r.name} onClick={() => setSheet(r.key)} style={{ display: 'flex', alignItems: 'center',
                   gap: 13, padding: `13px ${SCREEN_PAD_X}px`, cursor: 'pointer',
                   borderTop: i ? `1px solid ${t.border}` : 'none' }}>
                   <div style={{ width: 32, height: 32, borderRadius: 9, display: 'flex', alignItems: 'center',
@@ -351,6 +516,18 @@ export function ProfileScreen({ theme, nav, dark, setDark, accentKey, setAccentK
           </div>
         </Fragment>
       ))}
+
+      {/* Account actions */}
+      <div style={{ padding: `24px ${SCREEN_PAD_X}px 8px`, display: 'flex', flexDirection: 'column', gap: 10 }}>
+        <Button theme={t} kind="ghost" icon="refresh" onClick={() => setSheet('reset')}>Reset demo data</Button>
+        <Button theme={t} kind="danger" icon="arrowRight" onClick={() => store.logout()}>Log out</Button>
+      </div>
+      <div style={{ textAlign: 'center', padding: '4px 20px 4px' }}>
+        <span style={{ fontFamily: MONO, fontSize: 11, color: t.text3 }}>Forge OS · Prototype</span>
+      </div>
+
+      <ProfileSheets which={sheet} onClose={() => setSheet(null)} onNavigate={setSheet}
+        theme={t} nav={nav} />
     </Screen>
   );
 }
