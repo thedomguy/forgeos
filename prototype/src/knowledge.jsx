@@ -215,11 +215,14 @@ export function NoteReader({ theme, nav, slug, onBack }) {
   // guessing when layout is "done", keep re-pinning to the target percentage
   // whenever the content resizes — until the user actually takes over.
   useEffect(() => {
+    const D = typeof window !== 'undefined' && window.__forgeRestoreDebug;
+    if (D) D.push(['enter', !!note, !!scrollRef.current]);
     if (!note) return;
     const el = scrollRef.current;
     if (!el) return;
 
     const pct = note.scrollPct || 0;
+    if (D) D.push(['pct', pct]);
     // Seed lastSaved so the restore's own scroll events aren't written back.
     lastSaved.current = pct;
     userTookOverRef.current = false;
@@ -248,8 +251,9 @@ export function NoteReader({ theme, nav, slug, onBack }) {
       }
       if (performance.now() < deadline) raf = requestAnimationFrame(tick);
     };
+    if (D) D.push(['armed']);
     raf = requestAnimationFrame(tick);
-    return () => { stopped = true; cancelAnimationFrame(raf); };
+    return () => { if (D) D.push(['cleanup']); stopped = true; cancelAnimationFrame(raf); };
   }, [note]);
 
   // Any genuine input hands control back to the user immediately — this is what
