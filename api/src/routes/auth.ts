@@ -8,11 +8,21 @@ import { seedUser } from '../seed';
 
 export const authRouter = Router();
 
+// Signup stays strict: real email, real password length.
 const credentials = z.object({
   email: z.string().email(),
   password: z.string().min(6),
   name: z.string().trim().min(1).optional(),
   tz: z.string().optional(),
+});
+
+// Login is deliberately looser. The identifier column is still `email`, but a
+// plain username is allowed so short personal logins work (same shape as the
+// splitwise app). Validation here would only ever reject a legitimate existing
+// account — the password check is what actually guards the endpoint.
+const loginCredentials = z.object({
+  email: z.string().trim().min(1),
+  password: z.string().min(1),
 });
 
 authRouter.post(
@@ -43,7 +53,7 @@ authRouter.post(
 authRouter.post(
   '/login',
   h(async (req, res) => {
-    const { email, password } = credentials.parse(req.body);
+    const { email, password } = loginCredentials.parse(req.body);
     const user = await one<{ id: string; email: string; name: string; password_hash: string }>(
       'select id, email, name, password_hash from users where email = $1',
       [email.toLowerCase()],

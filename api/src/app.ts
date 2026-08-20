@@ -11,6 +11,7 @@ import { mealsRouter } from './routes/meals';
 import { logRouter } from './routes/log';
 import { settingsRouter } from './routes/settings';
 import { timelineRouter } from './routes/timeline';
+import { notesRouter } from './routes/notes';
 import './types';
 
 export function createApp() {
@@ -33,6 +34,7 @@ export function createApp() {
   v1.use('/meals', mealsRouter);
   v1.use('/settings', settingsRouter);
   v1.use('/timeline', timelineRouter);
+  v1.use('/notes', notesRouter);
   v1.use('/', logRouter); // /weight, /water, /walks, /workouts
 
   app.use('/fg/v1', v1);
