@@ -193,7 +193,9 @@ export function NoteReader({ theme, nav, slug, onBack }) {
   const [note, setNote] = useState(null);
   const [err, setErr] = useState(null);
   const scrollRef = useRef(null);
+  const contentRef = useRef(null);
   const restoredRef = useRef(false);
+  const userTookOverRef = useRef(false);
   const saveTimer = useRef(null);
   const lastSaved = useRef(0);
   const [progress, setProgress] = useState(0);
@@ -206,22 +208,54 @@ export function NoteReader({ theme, nav, slug, onBack }) {
       .catch((e) => setErr(e.message));
   }, [slug]);
 
-  // Restore the saved scroll position once content has actually laid out.
-  // Two rAFs: the first lets React commit the markdown, the second lets the
-  // browser finish layout so scrollHeight is real. Without this the restore
-  // lands at 0 because the element is still empty.
+  // Restore the saved scroll position.
+  //
+  // Naively scrolling once (even after a couple of rAFs) lands at 0: <Markdown>
+  // commits its HTML a tick later, and then highlight.js and mermaid change the
+  // height again as they enhance the content asynchronously. So instead of
+  // guessing when layout is "done", keep re-pinning to the target percentage
+  // whenever the content resizes — until the user actually takes over.
   useEffect(() => {
-    if (!note || restoredRef.current) return;
+    if (!note) return;
     const el = scrollRef.current;
+    const content = contentRef.current;
     if (!el) return;
+
     const pct = note.scrollPct || 0;
+    // Seed lastSaved so the restore's own scroll events aren't written back.
+    lastSaved.current = pct;
+    userTookOverRef.current = false;
     restoredRef.current = true;
-    if (pct <= 0.01) return;
-    requestAnimationFrame(() => requestAnimationFrame(() => {
+    setProgress(pct);
+    if (pct <= 0.01 || !content) return;
+
+    const apply = () => {
+      if (userTookOverRef.current) return;
       const max = el.scrollHeight - el.clientHeight;
       if (max > 0) el.scrollTop = max * pct;
-    }));
+    };
+    apply();
+    const ro = new ResizeObserver(apply);
+    ro.observe(content);
+    // Stop pinning once things have settled, so we never fight a late scroll.
+    const settle = setTimeout(() => ro.disconnect(), 3000);
+    return () => { ro.disconnect(); clearTimeout(settle); };
   }, [note]);
+
+  // Any genuine input hands control back to the user immediately — this is what
+  // distinguishes a real scroll from the programmatic re-pinning above.
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    const takeOver = () => { userTookOverRef.current = true; };
+    const opts = { passive: true };
+    for (const ev of ['wheel', 'touchstart', 'pointerdown', 'keydown'])
+      el.addEventListener(ev, takeOver, opts);
+    return () => {
+      for (const ev of ['wheel', 'touchstart', 'pointerdown', 'keydown'])
+        el.removeEventListener(ev, takeOver);
+    };
+  }, [slug]);
 
   const persist = useCallback((pct, status) => {
     api.put(`/notes/${encodeURIComponent(slug)}/progress`, { scrollPct: pct, status })
@@ -292,7 +326,7 @@ export function NoteReader({ theme, nav, slug, onBack }) {
         )}
 
         {note && (
-          <div style={{ padding: `0 ${SCREEN_PAD_X}px` }}>
+          <div ref={contentRef} style={{ padding: `0 ${SCREEN_PAD_X}px` }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', marginBottom: 10 }}>
               <Tag theme={t} color={hue}>{labelFor(note.domain)}</Tag>
               <span style={{ fontSize: 12.5, color: t.text3 }}>

@@ -14,10 +14,10 @@ export function Screen({ children, theme, padTop = STATUS_H + 6, padBottom = NAV
 }
 
 // ── Primitives ─────────────────────────────────────────────────
-export function Card({ children, theme, style = {}, elevated = false, onClick, accent }) {
+export function Card({ children, theme, style = {}, elevated = false, onClick, accent, className }) {
   const t = theme;
   return (
-    <div onClick={onClick} style={{
+    <div onClick={onClick} className={className} style={{
       background: elevated ? t.surface2 : t.surface, borderRadius: RADIUS.card,
       border: `1px solid ${accent ? accent + '40' : t.border}`,
       boxShadow: elevated ? t.shadow : 'none',
