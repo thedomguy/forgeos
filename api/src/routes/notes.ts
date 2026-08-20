@@ -170,12 +170,15 @@ notesRouter.put(
     // recent visit. Both are timestamps rather than a boolean so read history
     // could later be replayed back into the vault (ADR 0005).
     const row = await one(
+      // Casts on $3/$4 are load-bearing: without them Postgres infers the
+      // parameter type from the coalesce literal ('reading' → text is fine, but
+      // 0 → int4), and a fractional scroll_pct like 0.42 fails to parse as int.
       `insert into note_read_state
          (user_id, note_id, status, scroll_pct, first_read_at, last_read_at, updated_at)
-       values ($1, $2, coalesce($3, 'reading'), coalesce($4, 0), now(), now(), now())
+       values ($1, $2, coalesce($3::text, 'reading'), coalesce($4::real, 0), now(), now(), now())
        on conflict (user_id, note_id) do update set
-         status        = coalesce($3, note_read_state.status),
-         scroll_pct    = coalesce($4, note_read_state.scroll_pct),
+         status        = coalesce($3::text, note_read_state.status),
+         scroll_pct    = coalesce($4::real, note_read_state.scroll_pct),
          first_read_at = coalesce(note_read_state.first_read_at, now()),
          last_read_at  = now(),
          updated_at    = now()
