@@ -5,6 +5,7 @@
 // sheet: it hangs off the avatar it was launched from, which reads as a native
 // menu instead of a full modal for three short actions.
 import { useState, useEffect, useRef, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import { Icon } from './icons.jsx';
 import { FONT, ON_ACCENT, DANGER, Z, RADIUS } from './theme.jsx';
 
@@ -47,6 +48,8 @@ export function ProfileMenu({ theme, user, onLogout, onToast, size = 42 }) {
   const [open, setOpen] = useState(false);
   const [view, setView] = useState('menu'); // 'menu' | 'password'
   const wrapRef = useRef(null);
+  const btnRef = useRef(null);
+  const [anchor, setAnchor] = useState(null);
   const { canPromptInstall, promptInstall, installed, isIOS } = usePwaInstall();
 
   const name = user?.name || 'Forge';
@@ -54,18 +57,36 @@ export function ProfileMenu({ theme, user, onLogout, onToast, size = 42 }) {
 
   const close = useCallback(() => { setOpen(false); setView('menu'); }, []);
 
-  // Dismiss on outside tap / Escape — expected of any menu.
+  // The menu is portalled to <body> and positioned from the avatar's rect.
+  // Rendering it in place would put it inside the scrolling Screen (which
+  // clips overflow-x) and inside .forge-screen (which animates transform, and
+  // a transformed ancestor also captures position:fixed).
+  const openMenu = useCallback(() => {
+    const r = btnRef.current?.getBoundingClientRect();
+    if (r) setAnchor({ top: r.bottom + 10, right: Math.max(8, window.innerWidth - r.right) });
+    setOpen(true);
+  }, []);
+
+  // Escape closes; outside taps are handled by the full-screen catcher behind
+  // the popup (a document-level pointerdown listener would race the avatar's
+  // own onClick and immediately reopen it).
   useEffect(() => {
     if (!open) return;
-    const onDown = (e) => { if (wrapRef.current && !wrapRef.current.contains(e.target)) close(); };
     const onKey = (e) => { if (e.key === 'Escape') close(); };
-    document.addEventListener('pointerdown', onDown);
     document.addEventListener('keydown', onKey);
-    return () => {
-      document.removeEventListener('pointerdown', onDown);
-      document.removeEventListener('keydown', onKey);
-    };
+    return () => document.removeEventListener('keydown', onKey);
   }, [open, close]);
+
+  // Reposition if the viewport changes while the menu is open.
+  useEffect(() => {
+    if (!open) return;
+    const reposition = () => {
+      const r = btnRef.current?.getBoundingClientRect();
+      if (r) setAnchor({ top: r.bottom + 10, right: Math.max(8, window.innerWidth - r.right) });
+    };
+    window.addEventListener('resize', reposition);
+    return () => window.removeEventListener('resize', reposition);
+  }, [open]);
 
   async function handleInstall() {
     if (canPromptInstall) { close(); await promptInstall(); return; }
@@ -77,7 +98,7 @@ export function ProfileMenu({ theme, user, onLogout, onToast, size = 42 }) {
 
   return (
     <div ref={wrapRef} style={{ position: 'relative' }}>
-      <button onClick={() => (open ? close() : setOpen(true))} aria-label="Account"
+      <button ref={btnRef} onClick={() => (open ? close() : openMenu())} aria-label="Account"
         className="forge-press" style={{
           width: size, height: size, borderRadius: '50%', flexShrink: 0, padding: 0,
           border: 'none', cursor: 'pointer',
@@ -86,15 +107,16 @@ export function ProfileMenu({ theme, user, onLogout, onToast, size = 42 }) {
           boxShadow: `0 0 0 2px ${t.bg}, 0 0 0 4px ${t.accent.solid}66`,
         }}>{initial}</button>
 
-      {open && (
+      {open && anchor && createPortal(
         <>
           {/* click-catcher so a tap anywhere closes, without dimming the screen */}
-          <div style={{ position: 'fixed', inset: 0, zIndex: Z.float }} />
+          <div onPointerDown={close} style={{ position: 'fixed', inset: 0, zIndex: Z.float }} />
           <div className="forge-pop" style={{
-            position: 'absolute', top: size + 10, right: 0, zIndex: Z.floatHi,
-            width: 250, background: t.sheet, border: `1px solid ${t.border2}`,
+            position: 'fixed', top: anchor.top, right: anchor.right, zIndex: Z.toast,
+            width: 250, maxWidth: 'calc(100vw - 16px)',
+            background: t.sheet, border: `1px solid ${t.border2}`,
             borderRadius: 18, boxShadow: t.shadow, overflow: 'hidden',
-            transformOrigin: 'top right',
+            transformOrigin: 'top right', color: t.text,
           }}>
             {view === 'menu' ? (
               <>
@@ -128,7 +150,8 @@ export function ProfileMenu({ theme, user, onLogout, onToast, size = 42 }) {
                 onBack={() => setView('menu')} />
             )}
           </div>
-        </>
+        </>,
+        document.body,
       )}
     </div>
   );
