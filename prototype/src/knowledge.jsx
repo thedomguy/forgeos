@@ -236,9 +236,16 @@ export function NoteReader({ theme, nav, slug, onBack }) {
     let stopped = false;
     const deadline = performance.now() + 3000;
     const tick = () => {
-      if (stopped || userTookOverRef.current) return;
-      const max = el.scrollHeight - el.clientHeight;
-      if (max > 0) el.scrollTop = max * pct;
+      // Read the scroller fresh each frame rather than closing over it: if
+      // React swaps the node during the null→loaded transition, a captured
+      // reference is detached and silently accepts scrollTop writes forever.
+      const node = scrollRef.current;
+      if (stopped || !node || userTookOverRef.current) return;
+      const max = node.scrollHeight - node.clientHeight;
+      if (max > 0) node.scrollTop = max * pct;
+      if (typeof window !== 'undefined' && window.__forgeRestoreDebug) {
+        window.__forgeRestoreDebug.push([Math.round(performance.now() % 100000), max, Math.round(node.scrollTop)]);
+      }
       if (performance.now() < deadline) raf = requestAnimationFrame(tick);
     };
     raf = requestAnimationFrame(tick);
