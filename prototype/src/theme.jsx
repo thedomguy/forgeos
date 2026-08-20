@@ -57,8 +57,11 @@ export function makeTheme(dark, accentKey) {
 // stay small compared to the design-tool's fake-status-bar mockup.
 export const STATUS_H = 14;
 export const NAV_H = 78;
-export const FONT = "'Geist', -apple-system, system-ui, sans-serif";
-export const MONO = "'Geist Mono', 'SF Mono', ui-monospace, monospace";
+// 'Geist Variable' / 'Geist Mono Variable' are the family names registered by
+// the self-hosted @fontsource-variable packages (see index.css). The plain
+// 'Geist' names are kept as a fallback for anywhere the font is installed locally.
+export const FONT = "'Geist Variable', 'Geist', -apple-system, system-ui, sans-serif";
+export const MONO = "'Geist Mono Variable', 'Geist Mono', 'SF Mono', ui-monospace, monospace";
 
 // ── App shell ────────────────────────────────────────────────────
 // Full-viewport container that clips content so each screen can scroll

@@ -6,7 +6,7 @@ import { FONT, MONO, STATUS_H, NAV_H, DANGER, ON_ACCENT, Z, RADIUS } from './the
 // ── Scroll screen wrapper ──────────────────────────────────────
 export function Screen({ children, theme, padTop = STATUS_H + 6, padBottom = NAV_H + 12, scrollRef, onScroll, style = {} }) {
   return (
-    <div ref={scrollRef} onScroll={onScroll} style={{
+    <div ref={scrollRef} onScroll={onScroll} className="forge-scroll" style={{
       position: 'absolute', inset: 0, overflowY: 'auto', overflowX: 'hidden',
       paddingTop: padTop, paddingBottom: padBottom, ...style,
     }}>{children}</div>
@@ -176,11 +176,12 @@ export function Tag({ children, color, theme, style = {} }) {
     display: 'inline-flex', alignItems: 'center', gap: 4, ...style }}>{children}</span>;
 }
 
-export function Avatar({ size = 40, theme, ring }) {
+export function Avatar({ size = 40, theme, ring, name }) {
   const t = theme;
   return <div style={{ width: size, height: size, borderRadius: '50%', flexShrink: 0,
     background: `linear-gradient(135deg, ${t.accent.g1}, ${t.accent.g2})`,
     display: 'flex', alignItems: 'center', justifyContent: 'center', color: ON_ACCENT,
     fontWeight: 700, fontSize: size * 0.4, fontFamily: FONT,
-    boxShadow: ring ? `0 0 0 2px ${t.bg}, 0 0 0 4px ${t.accent.solid}66` : 'none' }}>A</div>;
+    boxShadow: ring ? `0 0 0 2px ${t.bg}, 0 0 0 4px ${t.accent.solid}66` : 'none' }}>
+    {(name || 'F').trim().slice(0, 1).toUpperCase()}</div>;
 }

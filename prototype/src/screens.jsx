@@ -6,6 +6,7 @@ import { FONT, MONO, HUE, ACCENTS, ON_ACCENT, Z, SCREEN_PAD_X } from './theme.js
 import { MODULES, QUICK_ACTIONS } from './data.js';
 import { useToday, useTimeline, useInsights, useStore, useSettings, useAuth } from './store.jsx';
 import { ProfileSheets } from './profilesheets.jsx';
+import { ProfileMenu } from './profilemenu.jsx';
 
 const moduleName = (id) => (MODULES.find(m => m.id === id) || {}).name || id;
 
@@ -162,11 +163,19 @@ export function HomeScreen({ theme, nav }) {
   const insight = insights[2] || insights[0] || {};
   const recent = timeline.slice(0, 3);
 
+  // Greet the actual signed-in user by first name, at the right time of day —
+  // the hardcoded "Good evening, Alex" was a mock-data leftover.
+  const store = useStore();
+  const auth = useAuth();
+  const hour = new Date().getHours();
+  const partOfDay = hour < 12 ? 'morning' : hour < 17 ? 'afternoon' : 'evening';
+  const firstName = (auth?.name || '').trim().split(/\s+/)[0];
+  const greeting = `Good ${partOfDay}${firstName ? `, ${firstName}` : ''}`;
+
   return (
     <Screen theme={t}>
-      <ScreenHeader theme={t} nav={nav} sub={WEEKDAY_DATE} title="Good evening, Alex"
-        trailing={<button onClick={() => nav.tab('profile')} style={{ background: 'none', border: 'none',
-          padding: 0, cursor: 'pointer' }}><Avatar theme={t} size={42} ring /></button>} />
+      <ScreenHeader theme={t} nav={nav} sub={WEEKDAY_DATE} title={greeting}
+        trailing={<ProfileMenu theme={t} user={auth} onLogout={store.logout} onToast={nav.toast} />} />
 
       {/* Today hero */}
       <div style={{ padding: `0 ${SCREEN_PAD_X}px` }}>
@@ -289,7 +298,8 @@ export function ModulesScreen({ theme, nav }) {
       <SectionLabel theme={t}>Installed</SectionLabel>
       <div style={{ padding: `0 ${SCREEN_PAD_X}px`, display: 'flex', flexDirection: 'column', gap: 10 }}>
         {installed.map(m => (
-          <Card key={m.id} theme={t} elevated onClick={() => nav.deep(['health'])} style={{ padding: 16,
+          <Card key={m.id} theme={t} elevated
+            onClick={() => (m.id === 'learning' ? nav.knowledge() : nav.deep(['health']))} style={{ padding: 16,
             background: `linear-gradient(120deg, ${m.hue}14, ${t.surface} 55%)`, border: `1px solid ${m.hue}33` }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
               <div style={{ width: 50, height: 50, borderRadius: 15, display: 'flex', alignItems: 'center',
@@ -441,7 +451,7 @@ export function ProfileScreen({ theme, nav, dark, setDark, accentKey, setAccentK
       {/* identity card */}
       <div style={{ padding: `0 ${SCREEN_PAD_X}px` }}>
         <Card theme={t} elevated style={{ padding: 20, display: 'flex', alignItems: 'center', gap: 16 }}>
-          <Avatar theme={t} size={60} ring />
+          <Avatar theme={t} size={60} ring name={displayName} />
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{ fontSize: 19, fontWeight: 700, overflow: 'hidden', textOverflow: 'ellipsis',
               whiteSpace: 'nowrap' }}>{displayName}</div>

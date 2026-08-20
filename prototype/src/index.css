@@ -1,6 +1,13 @@
+/* Self-hosted variable fonts. Previously loaded from Google Fonts, which
+   blocks first paint on a cold start and — more importantly — fails outright
+   when an installed PWA opens offline, dropping the whole UI to a fallback
+   system font. Bundling them keeps typography identical offline. */
+@import '@fontsource-variable/geist';
+@import '@fontsource-variable/geist-mono';
+
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 html, body, #root { margin: 0; padding: 0; }
-html, body { background: #0a0b0f; font-family: 'Geist', system-ui, sans-serif; overscroll-behavior: none; }
+html, body { background: #0a0b0f; font-family: 'Geist Variable', 'Geist', system-ui, sans-serif; overscroll-behavior: none; }
 button { font-family: inherit; }
 ::-webkit-scrollbar { width: 0; height: 0; }
 * { scrollbar-width: none; }
@@ -8,10 +15,77 @@ input::placeholder { color: inherit; opacity: 0.5; }
 
 #root, .forge-root { height: 100vh; height: 100dvh; width: 100%; }
 
+/* ── native-feel baseline ─────────────────────────────────────────
+   Web defaults are the loudest "this is a website" tell on touch:
+   long-press selects text or pops the iOS callout, double-tap zooms,
+   and taps carry a ~300ms delay. Suppress all of it globally, then
+   re-enable selection only where reading/copying is the point. */
+* {
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+body { touch-action: manipulation; }
+
+/* Note bodies, inputs and code are meant to be selected and copied. */
+.forge-md, .forge-md *, input, textarea, [contenteditable] {
+  -webkit-user-select: text;
+  user-select: text;
+  -webkit-touch-callout: default;
+}
+
+/* Momentum scrolling, and stop a scroll at the end of a pane from chaining
+   to the page behind it (which on iOS shows the rubber-band gap). */
+.forge-scroll, .forge-hscroll {
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+}
+.forge-hscroll::-webkit-scrollbar { display: none; }
+
+/* Images shouldn't be draggable — dragging one is a desktop-browser gesture. */
+img { -webkit-user-drag: none; user-drag: none; }
+
+/* ── press feedback ───────────────────────────────────────────────
+   Native controls acknowledge touch instantly. Transition only the
+   release (not the press) so the response feels immediate going down
+   and settles coming back up. */
+.forge-press {
+  transition: transform .18s cubic-bezier(.32,.72,0,1), opacity .18s;
+  -webkit-user-select: none; user-select: none;
+}
+.forge-press:active {
+  transform: scale(0.972);
+  opacity: 0.85;
+  transition-duration: 0s;
+}
+
 @keyframes forgeRise { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 @keyframes forgeBlink { 0%, 60%, 100% { opacity: 0.25; transform: scale(0.8); } 30% { opacity: 1; transform: scale(1); } }
 @keyframes forgeScan { 0% { top: 12%; } 50% { top: 80%; } 100% { top: 12%; } }
 @keyframes forgeFade { from { opacity: 0; } to { opacity: 1; } }
 @keyframes forgeSpin { to { transform: rotate(360deg); } }
+
+/* Screen transitions: a push reads as forward motion, a pop as reverse —
+   a cross-fade reads as a page load. Distance is deliberately small; the
+   long tail of the easing curve does the work, matching iOS. */
+@keyframes forgePush { from { opacity: 0; transform: translateX(18px); } to { opacity: 1; transform: translateX(0); } }
+@keyframes forgePop  { from { opacity: 0; transform: translateX(-14px); } to { opacity: 1; transform: translateX(0); } }
 .forge-screen { animation: forgeFade .28s ease; }
+.forge-screen[data-dir="push"] { animation: forgePush .3s cubic-bezier(.32,.72,0,1); }
+.forge-screen[data-dir="pop"]  { animation: forgePop .3s cubic-bezier(.32,.72,0,1); }
+
+/* Popover: scale from its anchor rather than fading in place. */
+@keyframes forgePopIn { from { opacity: 0; transform: scale(.94) translateY(-4px); } to { opacity: 1; transform: scale(1) translateY(0); } }
+.forge-pop { animation: forgePopIn .17s cubic-bezier(.32,.72,0,1); }
+
 .forge-rise { animation: forgeRise .4s cubic-bezier(.32,.72,0,1); }
+
+/* Respect the OS "reduce motion" setting — an accessibility requirement
+   that also happens to be what a well-behaved native app does. */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+  }
+}

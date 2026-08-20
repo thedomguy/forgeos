@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import bcrypt from 'bcryptjs';
 import { z } from 'zod';
-import { one, tx } from '../db';
+import { one, tx, pool } from '../db';
 import { h, HttpError } from '../lib';
 import { signToken, setAuthCookie, clearAuthCookie, authRequired } from '../auth';
 import { seedUser } from '../seed';
@@ -63,6 +63,31 @@ authRouter.post(
     }
     setAuthCookie(res, signToken(user.id));
     res.json({ user: { email: user.email, name: user.name } });
+  }),
+);
+
+const changePasswordBody = z.object({
+  currentPassword: z.string().min(1),
+  newPassword: z.string().min(4),
+});
+
+authRouter.post(
+  '/change-password',
+  authRequired,
+  h(async (req, res) => {
+    const { currentPassword, newPassword } = changePasswordBody.parse(req.body);
+    const row = await one<{ password_hash: string }>(
+      'select password_hash from users where id = $1',
+      [req.user!.id],
+    );
+    if (!row || !(await bcrypt.compare(currentPassword, row.password_hash))) {
+      throw new HttpError(401, 'Current password is incorrect');
+    }
+    await pool.query('update users set password_hash = $2 where id = $1', [
+      req.user!.id,
+      await bcrypt.hash(newPassword, 10),
+    ]);
+    res.json({ ok: true });
   }),
 );
 

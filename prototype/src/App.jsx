@@ -10,6 +10,7 @@ import { NutritionScreen } from './nutrition.jsx';
 import { BodyScreen } from './body.jsx';
 import { HistoryScreen } from './history.jsx';
 import { AssistantScreen } from './assistant.jsx';
+import { KnowledgeScreen, NoteReader } from './knowledge.jsx';
 import { WorkoutsScreen, WorkoutLive, WorkoutBanner, elapsedOf } from './workout.jsx';
 import { AddFoodSheet } from './foodsheet.jsx';
 import { LogWeightSheet } from './weightsheet.jsx';
@@ -60,6 +61,7 @@ function AppInner() {
 
   const [stack, setStack] = useState([{ view: 'home', tab: 'home' }]);
   const [seed, setSeed] = useState(null);
+  const [noteSlug, setNoteSlug] = useState(null);
   const [spotlightOpen, setSpotlightOpen] = useState(false);
   const [foodOpen, setFoodOpen] = useState(false);
   const [weightOpen, setWeightOpen] = useState(false);
@@ -76,6 +78,17 @@ function AppInner() {
 
   const top = stack[stack.length - 1];
   const activeTab = top.tab;
+
+  // Direction for the screen transition: deeper = push (slides in from the
+  // right), shallower = pop (from the left), same depth = plain fade for a
+  // lateral tab switch. Matches how a native stack navigator reads.
+  const prevDepth = useRef(stack.length);
+  const [dir, setDir] = useState(null);
+  useEffect(() => {
+    const d = stack.length - prevDepth.current;
+    prevDepth.current = stack.length;
+    setDir(d > 0 ? 'push' : d < 0 ? 'pop' : null);
+  }, [stack.length, top.view]);
 
   const showToast = useCallback((msg) => {
     setToast(msg); clearTimeout(toastTimer.current);
@@ -95,6 +108,10 @@ function AppInner() {
       setStack(frames);
     },
     back: () => setStack(s => s.length > 1 ? s.slice(0, -1) : [{ view: 'home', tab: 'home' }]),
+    // Push any view onto the stack (deep() is hardwired to start at health).
+    push: (view) => { setSpotlightOpen(false); setStack(s => [...s, { view, tab: s[s.length - 1].tab }]); },
+    knowledge: () => { setSpotlightOpen(false); setStack([{ view: 'knowledge', tab: 'modules' }]); },
+    openNote: (slug) => { setNoteSlug(slug); setStack(s => [...s, { view: 'note', tab: 'modules' }]); },
     spotlight: () => setSpotlightOpen(true),
     ask: (q) => { setSpotlightOpen(false); setStack([{ view: 'assistant', tab: 'assistant' }]); setSeed(q); },
     toast: showToast,
@@ -204,6 +221,8 @@ function AppInner() {
     if (v === 'workouts') return <WorkoutsScreen theme={theme} nav={nav} />;
     if (v === 'body') return <BodyScreen theme={theme} nav={nav} />;
     if (v === 'history') return <HistoryScreen theme={theme} nav={nav} />;
+    if (v === 'knowledge') return <KnowledgeScreen theme={theme} nav={nav} onOpen={nav.openNote} />;
+    if (v === 'note') return <NoteReader theme={theme} nav={nav} slug={noteSlug} onBack={nav.back} />;
     if (v === 'workout-live') return <WorkoutLive theme={theme} nav={nav} workout={workout} api={workoutApi} />;
     return <HomeScreen theme={theme} nav={nav} />;
   };
@@ -229,7 +248,8 @@ function AppInner() {
           onSignup={(name, email, password) => store.signup(email, password, name).then(() => showToast('Welcome to Forge'))} />
       ) : (
         <>
-          <div key={top.view} className="forge-screen" style={{ position: 'absolute', inset: 0 }}>
+          <div key={top.view} className="forge-screen" data-dir={dir || undefined}
+            style={{ position: 'absolute', inset: 0 }}>
             {renderFrame()}
           </div>
 
