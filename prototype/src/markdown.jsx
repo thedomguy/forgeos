@@ -23,6 +23,14 @@ function extractMermaid(src) {
 
 const marked = new Marked({ gfm: true, breaks: false });
 
+// Languages these notes use that highlight.js's common bundle doesn't ship,
+// mapped to the closest registered grammar.
+const LANG_ALIAS = {
+  fish: 'bash', zsh: 'bash', sh: 'bash', shell: 'bash', console: 'bash', fishshell: 'bash',
+  kdl: 'ini', toml: 'ini', conf: 'ini', plist: 'xml', jsonc: 'json', tsx: 'typescript',
+  jsx: 'javascript', psql: 'sql', zsh_history: 'bash',
+};
+
 export function Markdown({ source, theme }) {
   const hostRef = useRef(null);
   const [html, setHtml] = useState('');
@@ -58,9 +66,22 @@ export function Markdown({ source, theme }) {
         if (cancelled) return;
         codes.forEach((el) => {
           try {
+            const m = /language-([\w-]+)/.exec(el.className);
+            const lang = m?.[1];
+            if (lang && !hljs.getLanguage(lang)) {
+              // Unregistered language: highlightElement would bail and leave the
+              // block plain. Map shell-family dialects onto bash (close enough
+              // that comments/strings/flags all colour correctly), and let
+              // anything else fall through to hljs's auto-detection.
+              const alias = LANG_ALIAS[lang];
+              el.className = el.className.replace(
+                `language-${lang}`,
+                alias && hljs.getLanguage(alias) ? `language-${alias}` : '',
+              );
+            }
             hljs.highlightElement(el);
           } catch {
-            /* unknown language — leave it plain rather than breaking the note */
+            /* never let one bad block break the note */
           }
         });
       }

@@ -64,7 +64,13 @@ export function LoginScreen({ theme, onLogin, onSignup }) {
         <div style={{ display: 'flex', flexDirection: 'column', gap: 11 }}>
           {isSignup && <Field theme={t} icon="user" placeholder="Full name" autoComplete="name"
             value={name} onChange={e => setName(e.target.value)} />}
-          <Field theme={t} icon="user" placeholder="Email" type="email" autoComplete="email"
+          {/* Signup still wants a real email; login also accepts a plain
+              username, so the field stays type=text there — type=email would
+              give the wrong mobile keyboard and mark a username invalid. */}
+          <Field theme={t} icon="user" placeholder={isSignup ? 'Email' : 'Email or username'}
+            type={isSignup ? 'email' : 'text'}
+            autoComplete={isSignup ? 'email' : 'username'}
+            autoCapitalize="none" autoCorrect="off" spellCheck={false}
             value={email} onChange={e => setEmail(e.target.value)} />
           <Field theme={t} icon="shield" placeholder="Password" type="password"
             autoComplete={isSignup ? 'new-password' : 'current-password'}
