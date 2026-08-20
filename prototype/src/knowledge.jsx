@@ -193,7 +193,6 @@ export function NoteReader({ theme, nav, slug, onBack }) {
   const [note, setNote] = useState(null);
   const [err, setErr] = useState(null);
   const scrollRef = useRef(null);
-  const contentRef = useRef(null);
   const restoredRef = useRef(false);
   const userTookOverRef = useRef(false);
   const saveTimer = useRef(null);
@@ -218,7 +217,6 @@ export function NoteReader({ theme, nav, slug, onBack }) {
   useEffect(() => {
     if (!note) return;
     const el = scrollRef.current;
-    const content = contentRef.current;
     if (!el) return;
 
     const pct = note.scrollPct || 0;
@@ -227,19 +225,24 @@ export function NoteReader({ theme, nav, slug, onBack }) {
     userTookOverRef.current = false;
     restoredRef.current = true;
     setProgress(pct);
-    if (pct <= 0.01 || !content) return;
+    if (pct <= 0.01) return;
 
-    const apply = () => {
-      if (userTookOverRef.current) return;
+    // Re-pin every frame for a short window. Deliberately not keyed to a
+    // content ref or a "layout done" signal: the height changes several times
+    // (markdown commit, then highlight.js, then each mermaid SVG), and any
+    // single-shot restore races one of them. Cheap, bounded, and stops the
+    // moment the reader touches anything.
+    let raf = 0;
+    let stopped = false;
+    const deadline = performance.now() + 3000;
+    const tick = () => {
+      if (stopped || userTookOverRef.current) return;
       const max = el.scrollHeight - el.clientHeight;
       if (max > 0) el.scrollTop = max * pct;
+      if (performance.now() < deadline) raf = requestAnimationFrame(tick);
     };
-    apply();
-    const ro = new ResizeObserver(apply);
-    ro.observe(content);
-    // Stop pinning once things have settled, so we never fight a late scroll.
-    const settle = setTimeout(() => ro.disconnect(), 3000);
-    return () => { ro.disconnect(); clearTimeout(settle); };
+    raf = requestAnimationFrame(tick);
+    return () => { stopped = true; cancelAnimationFrame(raf); };
   }, [note]);
 
   // Any genuine input hands control back to the user immediately — this is what
@@ -326,7 +329,7 @@ export function NoteReader({ theme, nav, slug, onBack }) {
         )}
 
         {note && (
-          <div ref={contentRef} style={{ padding: `0 ${SCREEN_PAD_X}px` }}>
+          <div style={{ padding: `0 ${SCREEN_PAD_X}px` }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', marginBottom: 10 }}>
               <Tag theme={t} color={hue}>{labelFor(note.domain)}</Tag>
               <span style={{ fontSize: 12.5, color: t.text3 }}>
