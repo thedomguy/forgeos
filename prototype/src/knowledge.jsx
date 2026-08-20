@@ -215,14 +215,11 @@ export function NoteReader({ theme, nav, slug, onBack }) {
   // guessing when layout is "done", keep re-pinning to the target percentage
   // whenever the content resizes — until the user actually takes over.
   useEffect(() => {
-    const D = typeof window !== 'undefined' && window.__forgeRestoreDebug;
-    if (D) D.push(['enter', !!note, !!scrollRef.current]);
     if (!note) return;
     const el = scrollRef.current;
     if (!el) return;
 
     const pct = note.scrollPct || 0;
-    if (D) D.push(['pct', pct]);
     // Seed lastSaved so the restore's own scroll events aren't written back.
     lastSaved.current = pct;
     userTookOverRef.current = false;
@@ -230,30 +227,29 @@ export function NoteReader({ theme, nav, slug, onBack }) {
     setProgress(pct);
     if (pct <= 0.01) return;
 
-    // Re-pin every frame for a short window. Deliberately not keyed to a
-    // content ref or a "layout done" signal: the height changes several times
+    // Re-pin the target position for a short window. Deliberately not keyed to
+    // a content ref or a "layout done" signal: the height changes several times
     // (markdown commit, then highlight.js, then each mermaid SVG), and any
-    // single-shot restore races one of them. Cheap, bounded, and stops the
-    // moment the reader touches anything.
-    let raf = 0;
-    let stopped = false;
-    const deadline = performance.now() + 3000;
-    const tick = () => {
-      // Read the scroller fresh each frame rather than closing over it: if
-      // React swaps the node during the null→loaded transition, a captured
-      // reference is detached and silently accepts scrollTop writes forever.
+    // single-shot restore races one of them.
+    //
+    // A timer rather than requestAnimationFrame — rAF is suspended entirely
+    // while the tab is hidden or occluded, so a note opened in a background tab
+    // would never be pinned at all. A restore isn't an animation; 100ms
+    // granularity is imperceptible.
+    const deadline = Date.now() + 3000;
+    const timer = setInterval(() => {
+      // Read the scroller fresh each pass rather than closing over it: if React
+      // swaps the node during the null->loaded transition, a captured reference
+      // is detached and silently accepts scrollTop writes forever.
       const node = scrollRef.current;
-      if (stopped || !node || userTookOverRef.current) return;
+      if (!node || userTookOverRef.current || Date.now() > deadline) {
+        clearInterval(timer);
+        return;
+      }
       const max = node.scrollHeight - node.clientHeight;
       if (max > 0) node.scrollTop = max * pct;
-      if (typeof window !== 'undefined' && window.__forgeRestoreDebug) {
-        window.__forgeRestoreDebug.push([Math.round(performance.now() % 100000), max, Math.round(node.scrollTop)]);
-      }
-      if (performance.now() < deadline) raf = requestAnimationFrame(tick);
-    };
-    if (D) D.push(['armed']);
-    raf = requestAnimationFrame(tick);
-    return () => { if (D) D.push(['cleanup']); stopped = true; cancelAnimationFrame(raf); };
+    }, 100);
+    return () => clearInterval(timer);
   }, [note]);
 
   // Any genuine input hands control back to the user immediately — this is what
